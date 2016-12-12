@@ -1,0 +1,226 @@
+\documentclass[10pt,fleqn]{article}
+\usepackage{/home/clair/Documents/mystyle}
+
+%----------------------------------------------------------------------
+% reformat section headers to be smaller \& left-aligned
+\titleformat{\section}
+	{\large\bfseries}
+	{\thesection}{1em}{}
+	
+\titleformat{\subsection}
+	{\large\bfseries}
+	{\thesubsection}{1em}{}
+	
+%----------------------------------------------------------------------
+
+%\addtolength{\topmargin}{-0.5cm}
+%\addtolength{\textheight}{1cm}
+
+%----------------------------------------------------------------------
+
+\begin{filecontents}{analogue-refs.bib}
+
+@Article{Hagedorn2008,
+  Title                    = {Probabilistic forecast calibration using ECMWF and GFS ensemble reforecasts. Part I: Two-meter temperatures},
+  Author                   = {Hagedorn, Renate and Hamill, Thomas M and Whitaker, Jeffrey S},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2008},
+  Number                   = {7},
+  Pages                    = {2608--2619},
+  Volume                   = {136}
+}
+
+@Article{Hamill2006,
+  Title                    = {Probabilistic quantitative precipitation forecasts based on reforecast analogs: Theory and application},
+  Author                   = {Hamill, Thomas M and Whitaker, Jeffrey S},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2006},
+  Number                   = {11},
+  Pages                    = {3209--3229},
+  Volume                   = {134}
+}
+  
+@Article{Djalalova2015,
+  Title                    = {PM 2.5 analog forecast and Kalman filter post-processing for the Community Multiscale Air Quality (CMAQ) model},
+  Author                   = {Djalalova, Irina and Delle Monache, Luca and Wilczak, James},
+  Journal                  = {Atmospheric Environment},
+  Year                     = {2015},
+  Pages                    = {431--442},
+  Volume                   = {119},
+  Publisher                = {Elsevier}
+}
+
+@Article{DelleMonache2011,
+  Title                    = {Kalman filter and analog schemes to postprocess numerical weather predictions},
+  Author                   = {Delle Monache, Luca and Nipen, Thomas and Liu, Yubao and Roux, Gregory and Stull, Roland},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2011},
+  Number                   = {11},
+  Pages                    = {3554--3570},
+  Volume                   = {139}
+}
+
+@Article{Hagedorn2012,
+  Title                    = {Comparing TIGGE multimodel forecasts with reforecast-calibrated ECMWF ensemble forecasts},
+  Author                   = {Hagedorn, Renate and Buizza, Roberto and Hamill, Thomas M and Leutbecher, Martin and Palmer, TN},
+  Journal                  = {Quarterly Journal of the Royal Meteorological Society},
+  Year                     = {2012},
+  Number                   = {668},
+  Pages                    = {1814--1827},
+  Volume                   = {138},
+  Publisher                = {Wiley Online Library},
+}
+
+@Electronic{ECMWFReforecasts,
+  Author                   = {ECMWF},
+  Url                      = {http://www.ecmwf.int/en/forecasts/documentation-and-support/re-forecast-medium-and-extended-forecast-range}
+}
+
+@Electronic{TIGGEupgrades,
+  Author                   = {TIGGE},
+  Url = {https://software.ecmwf.int/wiki/display/TIGGE/Model+upgrades}
+}
+
+@Article{Hamill2012,
+  Title                    = {Verification of TIGGE multimodel and ECMWF reforecast-calibrated probabilistic precipitation forecasts over the contiguous United States},
+  Author                   = {Hamill, Thomas M},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2012},
+  Number                   = {7},
+  Pages                    = {2232--2252},
+  Volume                   = {140},
+}
+
+
+}
+
+\end{filecontents}
+
+% SPECIFY BIBLIOGRAPHY FILE & FIELDS TO EXCLUDE
+\addbibresource{analogue-refs.bib}
+%\AtEveryBibitem{\clearfield{url}}
+%\AtEveryBibitem{\clearfield{doi}}
+%\AtEveryBibitem{\clearfield{isbn}}
+%\AtEveryBibitem{\clearfield{issn}}
+    
+%======================================================================
+
+\begin{document}
+
+\section{Hamill's approach}
+In \cite{Hamill2006} analogues to the forecast currently under consideration are identified.
+
+\begin{itemize}
+
+\item If only assessing at particular location, makes sense to consider only reforecasts from nearby locations (model state at distant location is less likely to make a useful predictor, and will likely only do so by chance, not because the model state is similar)
+
+\item Not necessary to match all aspects of an ensemble; mean state may suffice, or perhaps mean and spread
+
+\item Depending on nature of predictand, may not need to match all aspects of forecast. For example, for surface temp, it may be sufficient to match reforecasts of surface temp alone, ignoring aspects such as upper-level winds/temps.
+
+\item Should consider length of reforecast period carefully. Short reforecast period ensures that climate \& analysis quality are both approximately stationary.
+
+\end{itemize}
+
+A number of variants on the analogue technique are proposed in \cite{Hamill2006}
+
+\subsection{Basic analogue technique}
+
+For a forecast at location $s$ and time $t$, \cite{Hamill2006} considers forecasts over a grid of 16 points centred at $s$. The pattern over these 16 points is compared to the reforecast pattern at those 16 points for a window of 91 days centred at $t$, over all other years. The root-mean-squared difference between the current forecast and each reforecast is then computed, averaged over the 16 grid points. The $n$ historical dates with the smallest rms difference are chosen as the dates of the analogues. (Further steps are necessary in the paper to obtain a probabilistic forecast - for a deterministic version, this should suffice) 
+
+Ensembles of size 10, 25, 50 and 75 were computed; the optimal size was found to be smaller for heavier precipitation events and shorter forecast leads.
+
+This technique could be applied either over the ensemble mean or over individual ensemble members. Seems likely that the configuration of the individual ensembles will provide some additional information, so expect better results by matching over individual ensemble means first.
+
+The technique may be applied only to the predictand, or may include other variables.
+
+\todo{Try finding analogues with and without pressure fields. Do they impact on the quality of the analogues found?} 
+
+\subsection{Rank analogue technique}
+
+When determining the closest matches at each of the 16 grid points, the rank is computed for today's precipitation forecast when pooled with the reforecasts. Similarly, the rank of the precipitation amount is determined at each grid point for each of the reforecasts in the temporal window. The analogue dates are those with the lowest sum of the absolute value of rank differences over the 16 points.
+
+This approach was originally introduced because, for early leads, the basic technique tended to underforecast precipitation probabilties. This was found to be largely due to the skewed distribution of precipitation forecast amounts, with lighter amounts more common than heavier amounts; analogues had less precipitation than today's forecast more often than they had more precipitation. This rank-based approach was proposed to ensure that more equal numbers of heavier and lighter forecast events were used as analogues; since temperature is assumed to be normally distributed, this adaptation should not be necessary.
+
+\subsection{Analogue smoothing}
+
+Analogues can be `tiled' to give a map over the full study area; this may result in a discontinuity of probabilities between tiles. To resolve this problem, the probabilities are smoothed over the eight boxes surrounding the central region (with vertices defined by the 16 gridpoints), by weighting the probabilities. Define a threshold $D$ (for example, the distance from the corner of the 16-point grid to its centre at $s$). For any point $x$ (which may lie on a mesh with a finer resolution than the 16-point grid), having distance $d_x$ from the centre of the 16-point grid, the unnormalised weight is
+\[ w'_x = \left\lbrace \begin{matrix}  \frac{D-d_x}{D+d_x}, & d_x < D \\ 0, & d_x \ge D \end{matrix} \right. \]
+The weights are then normalised to sum to 1 across each grid.
+
+\section{Delle Monache's approach}
+
+The metric applied in \cite{DelleMonache2011} is
+%
+\[ \Vert F_t, A_{t'} \Vert = \sum_{i=1}^{N_v} \frac{1}{\sigma_{f_i}} \sqrt{\sum_{j=-\tilde{t}}^{\tilde{t}} \left( F_{i, t+j} - A_{i, t'+j}\right)^2}\]
+
+where $F_t$ is the forecast to be corrected, and $A_{t'}$ is an analogue forecast at a time $t'$ before $F_t$ was issued and at the same location. $N_v$ is the number of physical variables; $\sigma_{f_i}$ is the SD of the time series of past forecasts of a given variable at the same location; $\tilde{t}$ is an integer equal to half the width of the time window over which the metric is computed; and $F_{i, t+j}$ and $A_{i, t'+j}$ are the values of the forecast and analogue in the time window for a given variable.
+
+Reforecasts will have a small score if they predict similar values and temporal trends for the forecasted quantity. Normalisation by $\sigma_{f_i}$ allows for the combination of variables with different units; if some variables are known to be more correlated with the predictand, this could be replaced with a weighted $\nicefrac{w_i}{\sigma_{f_i}}$.
+
+Analogues are identified aross multiple physical variables and over a time window for a given location and forecast time, at the same time of day (to control for diurnally-varying biases) and the same leadtime (presumably to control for changing biases due to the different processes that dominate the models over different timescales)
+
+\subsection{Use of analogues}
+
+In \cite{DelleMonache2011}, a weighted forecast is generated from the verifying observations on the $N_a$ analogue dates, with weights proportional to the inverse of the distance from the analogue to the forecast and normalised with the sum of this inverse distance over all analogues:
+%
+\begin{align*}
+wAN_t = \sum_{i=1}^{N_a} \gamma_i O_{i, t_i}, && \gamma_i = \frac{\Vert(F_t, A_{i, t_i}) \Vert ^{-1}}{\sum\limits_{j=1}^{N_a} \Vert(F_t, A_{i, t_i}) \Vert ^{-1}} 
+\end{align*}
+
+In \cite{Djalalova2015} the selected analogues are reordered according to their distance from the current forecast. A weighted sum of the observations corresponding to the $n$ closest analogues is used as a `corrected' forecast estimate, denoted the AN forecast.
+
+A second approach presented in \cite{Djalalova2015} is to apply a Kalman filter to the ordered analogues (from worst to best) as if they were a time series (KFAS, Kalman Filter in Analogue Space), or, alternatively, to construct a time series of `corrected' AN forecasts relating to the latest forecasts, and to apply a Kalman filter to that sequence (KFAN).
+
+\subsection{Key aspects of Delle Monache approach}
+
+\begin{itemize}
+
+\item Analogues are searched in forecast space only - no observations are used
+
+\item Analogues are identified independently for each forecast time and location
+
+\item KF-based approaches are not optimal when assumptions of Gaussianity and linearity are not met; weighted-analogue forecast does not suffer under these assumptions.
+
+\item Weighted-analogue approach replaces current forecast with a linear combination of the verifying observations of the closest analogues. (Forecasts are only used to identify similar situations in the past)
+
+\end{itemize}
+
+\section{ECMWF reforecast calibration}
+
+According to \cite{ECMWFReforecasts}, \quoth{[ECMWF] real-time forecasts are calibrated using a 1- week widow of re-forecasts, which represents a total of 660 (3 start dates $\times$  20 years $\times$ 11 members) re-forecast integrations.} However, the exact method used is not described.
+
+In \cite{Hagedorn2008} and \cite{Hagedorn2012}, reforecasts are used as training data to fit a nonhomogeneous Gaussian regression (NGR) to the ECMFW dataset. Using the ensemble mean and spread as predictors, a Gaussian distribution is fitted around the regression-corrected ensemble mean. When the NGR was trained only over reforecast data, it was actually outperformed by the NGR trained over the preceding data, particularly at short leadtimes; however, when synthetic ensembles drawn from both of these fitted models were pooled, and only the best members retained, better results were observed \cite[\textit{\S3.3}]{Hagedorn2012}. The training set here consists of the 5 weeks centred on the date of interest, across all available years (with allowances for cross-validation).
+
+An equivalent approach, applied to probabilistic precipitation predictions, is used in \cite{Hamill2012}; in this case, extended logistic regression is used. The authors note that, unlike the analogue approach proposed by \cite{Hamill2006}, this method is not able to correct for positional biases. 
+
+Based on the above, it seems reasonable to assume that the ECMWF real-time forecasts are calibrated using a regression model of some kind, trained over reforecast data from a time period and location similar to that of the target.
+
+\section{Planned approach}
+
+The populations of reforecasts used as training data are generally chosen from the population of reforecasts within a limited spatial and temporal distance of the target forecast. Furthermore, it seems sensible to limit the search to the same time of day (perhaps measured in hours after sunrise/sunset, if it comes to that level of detail?) to control for diurnal biases, and to the same forecast leadtime, to control for any changes in bias due to differences in the driving physical processes at different leadtimes.
+
+In identifying analogues to specific forecasts, Hamill and Delle Monache both use a metric based on the root squared distance between the forecast and candidates; Hamill uses the root mean squared difference directly over single candidate forecasts \cite{Hamill2006}, while Delle Monache uses a more complex-looking but essentially similar metric in which variates in different units are normalised by dividing by the standard deviation, and summed over a window of forecasts around the target date. Although Hamill mentions the possibility of using ensemble spread as part of the metric, this possibility doesn't seem to have been explored.
+
+We are currently only interested in finding the closest analogues, rather than assessing the degree to which an analogue resembles the target forecast; ordering the analogues by increasing Mahalanobis distance should therefore result in the same ranks as if we order them by point-to-point distance.
+
+We also need to consider which variables to search over. Do we only retain the predictands when looking for analogues? Or do we retain other variables that will indicate a similar model state? (In which case, DM's normalisation step is a wise one)
+
+
+\todo{Check ordering by Mahalanobis distance (multivariate \& ensemble-by-ensemble), vs ordering by point vector norm. Is ranking the same? If so then can justify dropping spread element of check \& use more computationally efficient p2p ordering to identify analogues (especially if we're just looking for the $n$ nearest analogues...}
+
+\todo{Try finding analogues with and without pressure fields. Do they impact on the quality of the analogues found? Will need to normalise before calculating.} 
+
+\todo{Compare effect of varying size of analogue ensemble - may differ at different leadtimes}
+
+\todo{Is mean of vector norm easier to interpret than sum? Suspect so (easier to compare between models with different numbers of variates, for starters)}
+
+
+\subsection{Changes in TIGGE NWP models}
+
+According to \cite{TIGGEupgrades}, the NCEP model was upgraded in March 2009 to correct a bias in the GFS predictions. This coincides with a noticeable jump in the forecast errors, suggesting that the data obtained is a historical forecast, rather than a reforecast. Data before and after Y3 for the NCEP model should therefore be treated as derived from two different NWP systems.
+
+\hrulefill
+%\newpage
+\printbibliography
+\end{document}

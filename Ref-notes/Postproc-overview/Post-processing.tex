@@ -1,0 +1,268 @@
+\documentclass[10pt,fleqn]{article}
+\usepackage{/home/clair/Documents/mystyle}
+
+%----------------------------------------------------------------------
+% reformat section headers to be smaller \& left-aligned
+\titleformat{\section}
+	{\normalfont\bfseries}
+	{\thesection}{1em}{}
+	
+\titleformat{\subsection}
+	{\normalfont\bfseries}
+	{\thesubsection}{1em}{}
+	
+%----------------------------------------------------------------------
+
+\addtolength{\topmargin}{-0.5cm}
+\addtolength{\textheight}{1cm}
+
+%----------------------------------------------------------------------
+
+\begin{filecontents}{pp-refs.bib}
+
+@InCollection{Gneiting2014,
+  Title                    = {Calibration of medium-range weather forecasts},
+  Author                   = {Gneiting, Tilmann},
+  Booktitle                = {Technical Memoranda 719},
+  Publisher                = {ECMWF},
+  Year                     = {2014}
+}
+
+@Misc{GreenBook2016,
+  Title                    = {Annual Report on Application and Verification of ECMWF Products in Member and Co-operating States},
+  Author                   = {ECMWF},
+  Year                     = {2016}
+}
+
+@Misc{GreenBook2012,
+  Title                    = {Annual Report on Application and Verification of ECMWF Products in Member and Co-operating States},
+  Author                   = {ECMWF},
+  Year                     = {2012}
+}
+
+@Article{Gneiting2005,
+  Title                    = {Calibrated probabilistic forecasting using ensemble model output statistics and minimum CRPS estimation},
+  Author                   = {Gneiting, Tilmann and Raftery, Adrian E and Westveld III, Anton H and Goldman, Tom},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2005},
+  Number                   = {5},
+  Pages                    = {1098--1118},
+  Volume                   = {133}
+}
+
+@TechReport{Stauffer2016,
+  Title                    = {Ensemble post-processing of daily precipitation sums over complex terrain using censored high-resolution standardized anomalies},
+  Author                   = {Stauffer, Reto and Messner, Jakob and Mayr, Georg J and Umlauf, Nikolaus and Zeileis, Achim},
+  Institution              = {Working Papers in Economics and Statistics},
+  Year                     = {2016}
+}
+
+@Electronic{NOAAMOS,
+  Organization             = {NOAA Meteorolgical Development Lab},
+  Url                      = {http://www.nws.noaa.gov/mdl/synop/products.php}
+}
+
+@InProceedings{Galanis2006,
+  Title                    = {Applications of Kalman filters based on non-linear functions to numerical weather predictions},
+  Author                   = {Galanis, G and Louka, P and Katsafados, P and Pytharoulis, I and Kallos, G},
+  Booktitle                = {Annales geophysicae},
+  Year                     = {2006},
+  Number                   = {10},
+  Pages                    = {2451--2460},
+  Volume                   = {24}
+}
+
+@Article{He2015,
+  Title                    = {Multi-model ensemble forecasts of tropical cyclones in 2010 and 2011 based on the Kalman Filter method},
+  Author                   = {He, Chengfei and Zhi, Xiefei and You, Qinglong and Song, Bin and Fraedrich, Klaus},
+  Journal                  = {Meteorology and Atmospheric Physics},
+  Year                     = {2015},
+  Number                   = {4},
+  Pages                    = {467--479},
+  Volume                   = {127},
+  Publisher                = {Springer}
+}
+
+@Article{Rixen2009,
+  Title                    = {Improved ocean prediction skill and reduced uncertainty in the coastal region from multi-model super-ensembles},
+  Author                   = {Rixen, Michel and Book, Jeffrey W and Carta, Alessandro and Grandi, Vittorio and Gualdesi, Lavinio and Stoner, Richard and Ranelli, Peter and Cavanna, Andrea and Zanasca, Pietro and Baldasserini, Gisella and others},
+  Journal                  = {Journal of Marine Systems},
+  Year                     = {2009},
+  Pages                    = {S282--S289},
+  Volume                   = {78},
+  Publisher                = {Elsevier}
+}
+
+@Article{Shin2003,
+  Title                    = {Short-to medium-range superensemble precipitation forecasts using satellite products: 1. Deterministic forecasting},
+  Author                   = {Shin, DW and Krishnamurti, TN},
+  Journal                  = {Journal of Geophysical Research: Atmospheres},
+  Year                     = {2003},
+  Number                   = {D8},
+  Volume                   = {108},
+  Publisher                = {Wiley Online Library}
+}
+
+@Article{Vandenbulcke2009,
+  Title                    = {Super-ensemble techniques: Application to surface drift prediction},
+  Author                   = {Vandenbulcke, Luc and Beckers, J-M and Lenartz, Fabian and Barth, Alexander and Poulain, P-M and Aidonidis, M and Meyrat, J and Ardhuin, F and Tonani, M and Fratianni, C and others},
+  Journal                  = {Progress in Oceanography},
+  Year                     = {2009},
+  Number                   = {3},
+  Pages                    = {149--167},
+  Volume                   = {82},
+  Publisher                = {Elsevier}
+}
+
+@Article{Raftery2005,
+  Title                    = {Using Bayesian model averaging to calibrate forecast ensembles},
+  Author                   = {Raftery, Adrian E and Gneiting, Tilmann and Balabdaoui, Fadoua and Polakowski, Michael},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2005},
+  Number                   = {5},
+  Pages                    = {1155--1174},
+  Volume                   = {133}
+}
+
+@Article{Hagedorn2012,
+  Title                    = {Comparing TIGGE multimodel forecasts with reforecast-calibrated ECMWF ensemble forecasts},
+  Author                   = {Hagedorn, Renate and Buizza, Roberto and Hamill, Thomas M and Leutbecher, Martin and Palmer, TN},
+  Journal                  = {Quarterly Journal of the Royal Meteorological Society},
+  Year                     = {2012},
+  Number                   = {668},
+  Pages                    = {1814--1827},
+  Volume                   = {138},
+  Publisher                = {Wiley Online Library}
+}
+
+@Electronic{ECMWFReforecasts,
+  Author                   = {ECMWF},
+  Url                      = {http://www.ecmwf.int/en/forecasts/documentation-and-support/re-forecast-medium-and-extended-forecast-range},
+}
+
+@Article{Hamill2006,
+  Title                    = {Probabilistic quantitative precipitation forecasts based on reforecast analogs: Theory and application},
+  Author                   = {Hamill, Thomas M and Whitaker, Jeffrey S},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2006},
+  Number                   = {11},
+  Pages                    = {3209--3229},
+  Volume                   = {134}
+}
+
+@Article{DelleMonache2013,
+  Title                    = {Probabilistic weather prediction with an analog ensemble},
+  Author                   = {Delle Monache, Luca and Eckel, F Anthony and Rife, Daran L and Nagarajan, Badrinath and Searight, Keith},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2013},
+  Number                   = {10},
+  Pages                    = {3498--3516},
+  Volume                   = {141}
+}
+
+@Article{Djalalova2015,
+  Title                    = {PM 2.5 analog forecast and Kalman filter post-processing for the Community Multiscale Air Quality (CMAQ) model},
+  Author                   = {Djalalova, Irina and Delle Monache, Luca and Wilczak, James},
+  Journal                  = {Atmospheric Environment},
+  Year                     = {2015},
+  Pages                    = {431--442},
+  Volume                   = {119},
+  Publisher                = {Elsevier}
+}
+
+\end{filecontents}
+
+
+% SPECIFY BIBLIOGRAPHY FILE & FIELDS TO EXCLUDE
+\addbibresource{pp-refs.bib}
+%\AtEveryBibitem{\clearfield{url}}
+%\AtEveryBibitem{\clearfield{doi}}
+%\AtEveryBibitem{\clearfield{isbn}}
+%\AtEveryBibitem{\clearfield{issn}}
+
+%======================================================================
+
+\begin{document}
+
+%\section*{Approaches to post-processing of numerical weather predictions from multiple models}
+
+\subsection*{Approaches to post-processing of numerical weather predictions from multiple models}
+Current operational post-processing of numerical weather predictions tends to focus heavily on bias correction, with less attention paid to forecast calibration and the spread of model uncertainty. Taking the European Centre for Medium-Range Weather Forecasts (ECMWF)'s widely-used Integrated Forecasting System as an example, there seems to be a distinct gap between current research and the techniques actually applied to ECMWF predictions by forecasters.
+
+Gneiting, who shares this observation \cite{Gneiting2014}, tabulates the statistical post-processing methods applied to the ECMWF in 2012 by a number of European forecasting centres, as given in the ECMWF's `Green Book' \cite{GreenBook2012}; of 20 member and cooperating states at the time, only 3 used any form of ensemble calibration as part of their standard operations, and those three all used different approaches (nonhomogeneous regression, rank-based and CDF-matching methods). At the same time, 9 of the 20 states were using a Kalman Filter to perform bias correction on at least some of the forecast variables; 3 used a combination of Model Output Statistics (MOS) with a Kalman Filter; 3 a combination of MOS and Perfect Prognosis; and 1 used Perfect Prognosis alone. The remainder either did not record any bias correction, or did not specify the method. 
+
+A brief review of the latest issue of the ECMWF Green Book \cite{GreenBook2016} suggests that the situation has not changed much, with many members' entries in section 2.1.1 (`Statistical adaptation') either empty or, in some cases, identical to that of previous reports; other forecasting centres (notably Germany and the UK) do not appear in the latest report at all. Many centres appear to rely largely or entirely on the ECMWF forecasts, although this is not always the case; the German contribution, for example, refers to a multi-model ensemble method combining ECMWF data with their own COSMO-DE forecasts in a logistic regression framework to create an extreme-weather warning system.
+
+
+
+
+\subsection*{Model Output Statistics}
+MOS remains among the most commonly-used approaches to bias correction for a single model output, with the NOAA in particular using it in many applications \cite{NOAAMOS}. In its basic form, MOS uses multiple linear regression to adjust the bias and spread of a forecast based on verifying observations, an approach that can easily be extended to take multiple model inputs into account. Sometimes also known as Nonhomogeneous Regression (NR), the Ensemble Model Output Statistics (EMOS) extension proposed in \cite{Gneiting2005} defines a parametric predictive PDF for a single weather variable $y$ based on the output of multiple models. Any parametric distribution could be used as the basis for this method, but as an example, a Gaussian distribution - commonly used for temperature or air pressure - will have the general form
+\[ y | x_1, \dots, x_K \sim \mathcal{N} \left( a + b_1 x_1 + \dots + b_K x_K, c + dS^2 \right) \] 
+where $\left\{ x_1, \dots, x_K \right\}$ are the outputs from the K models, $S^2$ is the ensemble variance, and the coefficients are fitted based on the training data; the mean value is a weighted average of the individual model forecasts, with variance linearly dependent on the ensemble variance. The authors recommend fitting the coefficients my minimizing the CRPS, rather than by maximum likelihood estimation, which is less robust and can tend to favour overdispersive distributions. 
+
+The authors suggest that the regression can easily be extended to gridded ensemble output to provide a gridded forecast, although this does not take into account any spatial dependencies between grid points. Furthermore, forecasts at successive time steps are corrected independently by fitting the data to a `moving window' training set consisting of a fixed number of preceding observations, so temporal dependencies are also not captured. The EMOS$^+$ adaptation also suggested in \cite{Gneiting2005}, related to Tibshirani's lasso regression, estimates the coefficients recursively, with negative coefficients discarded at each step. This extension aims to discard the least useful coefficients from each ensemble member, but does not quantify the relative contributions of each source, and does not appear to be widely used. 
+
+The various MOS aproaches have been shown to be successful in reducing forecast bias for a range of variables, with EMOS also able to improve model calibration by improving the forecast spread. However, EMOS adjustments are essentially static; to obtain coefficients tailored to successive forecasts, a `moving window' approach can be  applied, requiring retraining of the model with a full training data set at each time step. The resulting forecast is generally sensitive to the length of the training data set, with too-short training periods tending to result in underdispersive predictive densities, and too-long training periods leading to a reduction in forecasting skill, possibly as a result of seasonally-varying model biases \cite{Gneiting2005}.
+
+
+
+
+\subsection*{Bayesian Model Averaging}
+
+An alternative approach to combining the outputs of multiple models is Bayesian Model Averaging (BMA) \cite{Raftery2005}. Where EMOS combines multiple model outputs into a single parametric predictive distribution, BMA produces a mixture distribution
+\[ y | x_1, \dots, x_K \sim \sum_{k=1}^K w_k g(y | x_k) \]
+where $\left\{ x_1, \dots, x_K \right\}$ are again outputs from the K models, with $g(y|x_k)$ a parametric density for forecast $x_k$ and the mixture weights $w_k$ reflect the relative contributions of each model to the predictive skill of the ensemble forecast.
+
+As with EMOS, the approach can be applied over a gridded model to obtain a grid of bias-corrected forecasts, but spatial dependencies are still not accounted for; also as with EMOS, the model is fitted over a fixed training period, and must be re-fitted at each time step to obtain new weights. The EMOS approach is naturally more parsimonious than BMA, able to describe the predictive distribution using only a small number of easily-interpreted parameters, while a BMA mixture model is more flexible, and so may be more likely to capture the full range of possibilities. 
+
+An additional benefit of the BMA approach is that the mixture weights may be useful as a diagnostic tool to identify which models contribute the greatest (or least) amount of predictive skill to the ensemble, and therefore to identify where particular models may be underperforming, rather than entirely discarding the contributions of those models as EMOS$^+$ does. It has been noted \cite{Hagedorn2012} that a multi-model ensemble in which poorly-performing members are given equal weight (or otherwise too great a weight) may demonstrate less skill than a single model, so finding appropriate weights in any multi-model ensemble is paramount. For this reason, the Bayesian approach to combining ensemble members - with its explicit expression of the weights assigned to each element - seems preferable to EMOS in terms of understanding and communicating the usefulness of each ensemble member.
+
+
+
+
+
+\subsection*{Kalman Filter}
+
+An approach that is able to take into account the temporal dependence of sequences of forecasts and observations is the Kalman Filter; this can be considered as a special case of the MOS approach, implemented dynamically. This approach is often used to perform bias correction in a single model, usually using  linear functions of the predictors and assuming all distributions to be Gaussian. A non-linear variant proposed in \cite{Galanis2006}, and used by Greece's Hellenic National Meteorological Service since 2008 to bias-correct ECMWF temperature forecasts \cite{GreenBook2016}, uses low-order polynomial functions to obtain an improvement in bias correction compared to the linear model. Other time-series approaches, such as ARIMA models, are sometimes applied, but these tend to be used only for local forecasts (perhaps only at a single location) and for a specific purpose, such as forecasting power generated at a wind farm based on the observed local weather conditions, and tend not to be used for broader weather forecasting.
+
+While the Kalman filter is extensively used in Data Assimilation, and applications to single-model forecasts are fairly common, it has also been used to combine forecasts from multiple distinct models, for predictands such as precipitation \cite{Shin2003} and the two-dimensional tracks of tropical cyclones \cite{He2015} and oceanic surface drift \cite{Rixen2009, Vandenbulcke2009}.
+
+The dynamic Kalman Filter has an advantage over static MOS methods in that it does not require such a long training period, and is far more flexible; to update MOS coefficients, the entire model must be re-fitted, while the Kalman Filter automatically incorporates the latest information and discards the old. However, like MOS, the Kalman Filter can only `learn' from events that it has already seen, and is unable to anticipate changes in the forecast error, which may occur when the weather changes abruptly. Furthermore, most current applications of the Kalman Filter are used only to adjust the forecast bias, without explicitly considering the effect on the forecast spread, and therefore on the calibration of the forecast. 
+
+
+
+\subsection*{Reforecasts}
+
+Reforecasts - sometimes also called hindcasts - are forecasts produced using the current operational model, taking historical observations or analyses as their inputs, and resulting in a set of reforecasts of past weather for which verifying observations are available. Owing to the high computational cost of producing these reforecasts, not all forecasting centres provide this service, but the ECMWF have been producing reforecasts for several years, and the TIGGE repository now contains weekly ECMWF reforecasts for the last twenty years. According to \cite{ECMWFReforecasts}, ECMWF weekly real-time forecasts are currently calibrated using reforecast data from a 1-week window centred on the forecast date, although the exact method is not given.
+
+Reforecasts are generally used as the training set for EMOS approaches to model calibration; in \cite{Hagedorn2012}, ECMWF reforecasts from the TIGGE archive were used to train a nonhomogeneous Gaussian regression model (EMOS). The reforecast-calibrated model gave particular improvements in regions where there were clear systematic errors, such as areas with particularly complex terrain or orography; in these cases, reforecast calibration was able to correct for biases not only at the model scale but also at smaller scales, performing a statistical downscaling of the forecasts. Due to the absence of reforecasts for the other ensemble members, reforecast calibration was applied only to the ECMWF model, and the reforecast calibration was not combined with forecasts from other ensemble members. 
+
+%A similar approach to this is given in \cite{Stauffer2016}; rather than using the reforecasts to train a single model at each grid point, reforecasts are used to determine the mean `anomaly' (deviation from the mean) at each grid point, with these anomalies standardized by the local variance, also obtained from the reforecasts. A single parametric model is then fitted at all locations, 
+
+%\todo{Add SAMOS if time after conclusion is written up! A similar approach to this is given in \cite{Stauffer2016}; rather than using the reforecasts to train a single model at each grid point, reforecasts are used to identify}
+
+Rather than using all available reforecasts for a given time and location as a training set, \cite{Hamill2006} suggests searching the reforecasts to identify analogues to the current forecast. These analogues - defined as the $n$ reforecasts that most closely resembles the current forecasts in terms of some specified metrics, where $n$ is fixed by the forecaster - and their verifying observations are then used as the basis for the bias correction. Various calibration methods have been suggested based on analogue training sets \cite{DelleMonache2013, Djalalova2015}, but the main difference between reforecast-calibration and analogue-calibration remains the method of selecting the set of reforecasts to use for training. 
+
+%\nb{Probably because of the lack of other reforecast data sets, reforecast methods are generally not combined with multi-model approaches.}
+
+
+
+\subsection*{Opportunities for further research}
+
+Most current operational approaches are concerned only with bias correction, leaving model calibration uninvestigated. This typically results in overconfident (or underdispersed) forecasts, which are likely to under-forecast more extreme events - which may arguably be considered the most important or interesting events. Multi-model forecasting offers an effective way to correct for dispersion errors in the individual forecasts, as well as location biases in the model output. However, the approaches usually applied to multi-model ensembles produce fixed coefficients, requiring retraining of the model for each new forecast. A more flexible approach, combining the advantages of both methods, but allowing a shorter training period, would be to use a Kalman Filter to allow the model parameters to evolve over time.
+
+However, even dynamic ensemble averaging remains reactive, unable to anticipate changes in the forecast error; it is only able to refine the existing forecasts. The addition of reforecast data to the ensemble in some form may be able to go some way to correct for this, having been shown to be able to effectively downscale model forecasts, and to cope even with systematic biases shared by all models, by extending the available training data. 
+
+While the ECMWF already uses reforecasts in its post-processing, there may be scope for further improvement in applying an analogue-selection approach, by identifying reforecasts that are in some sense similar to the current forecast, and combining those with the multi-model ensemble. It is not difficult to imagine a scenario - for example, during a heatwave or cold snap - for which the forecast and the historic weather within one week of the forecast date are actually quite dissimilar, in which case the ECMWF reforecast training set may be unhelpful at best; selecting analogues whose similarity is based on features other than calendar date and location may, in such cases, be more useful, and this possibility should be investigated. An interesting starting point in this area may be to augment the multi-model ensemble with an `analogue ensemble' member, consisting of verifying observations from the dates of the most similar reforecasts to the present forecast, and to compare the calibration results to those of the equivalent model without reforecast augmentation.
+
+% Kalman Filter to identify best reforecast analogues?
+
+
+
+%One possible approach to combining these areas of investigation might be to perform Bayesian inference on the multi-model ensemble, augmented with an ensemble of verifying observations taken from the dates of the most similar reforecasts; such an approach would allow relatively straightforward
+
+%\hrulefill
+\newpage
+\printbibliography
+\end{document}

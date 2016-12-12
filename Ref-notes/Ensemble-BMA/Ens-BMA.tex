@@ -1,0 +1,369 @@
+\documentclass[10pt,fleqn]{article}
+\usepackage{/home/clair/Documents/mystyle}
+
+%----------------------------------------------------------------------
+% reformat section headers to be smaller \& left-aligned
+\titleformat{\section}
+	{\large\bfseries}
+	{\thesection}{1em}{}
+	
+\titleformat{\subsection}
+	{\large\bfseries}
+	{\thesubsection}{1em}{}
+	
+\titleformat{\subsubsection}
+	{\large\bfseries}
+	{\thesubsubsection}{1em}{}
+	
+%----------------------------------------------------------------------
+
+%\addtolength{\topmargin}{-0.5cm}
+%\addtolength{\textheight}{1cm}
+
+%----------------------------------------------------------------------
+
+% SPECIFY BIBLIOGRAPHY FILE & FIELDS TO EXCLUDE
+
+\begin{filecontents}{ensBMA-refs.bib}
+
+@Article{Fraley2010,
+  Title                    = {Calibrating multimodel forecast ensembles with exchangeable and missing members using Bayesian model averaging},
+  Author                   = {Fraley, Chris and Raftery, Adrian E and Gneiting, Tilmann},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2010},
+  Number                   = {1},
+  Pages                    = {190--202},
+  Volume                   = {138}
+}
+
+@Article{Raftery2005,
+  Title                    = {Using Bayesian model averaging to calibrate forecast ensembles},
+  Author                   = {Raftery, Adrian E and Gneiting, Tilmann and Balabdaoui, Fadoua and Polakowski, Michael},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2005},
+  Number                   = {5},
+  Pages                    = {1155--1174},
+  Volume                   = {133}
+}
+
+@Article{Sloughter2007,
+  Title                    = {Probabilistic quantitative precipitation forecasting using Bayesian model averaging},
+  Author                   = {Sloughter, J Mc Lean and Raftery, Adrian E and Gneiting, Tilmann and Fraley, Chris},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2007},
+  Number                   = {9},
+  Pages                    = {3209--3220},
+  Volume                   = {135}
+ }
+
+@Article{Sloughter2010,
+  Title                    = {Probabilistic wind speed forecasting using ensembles and Bayesian model averaging},
+  Author                   = {Sloughter, J McLean and Gneiting, Tilmann and Raftery, Adrian E},
+  Journal                  = {Journal of the American Statistical Association},
+  Year                     = {2010},
+  Number                   = {489},
+  Pages                    = {25--35},
+  Volume                   = {105},
+  Publisher                = {Taylor \& Francis}
+}
+
+@Article{Vrugt2008,
+  Title                    = {Ensemble Bayesian model averaging using Markov chain Monte Carlo sampling},
+  Author                   = {Vrugt, Jasper A and Diks, Cees GH and Clark, Martyn P},
+  Journal                  = {Environmental fluid mechanics},
+  Year                     = {2008},
+  Number                   = {5-6},
+  Pages                    = {579--595},
+  Volume                   = {8},
+  Publisher                = {Springer}
+}
+
+@Article{Park2008,
+  Title                    = {TIGGE: Preliminary results on comparing and combining ensembles},
+  Author                   = {Park, Young-Youn and Buizza, Roberto and Leutbecher, Martin},
+  Journal                  = {Quarterly Journal of the Royal Meteorological Society},
+  Year                     = {2008},
+  Number                   = {637},
+  Pages                    = {2029--2050},
+  Volume                   = {134},
+  Publisher                = {Wiley Online Library}
+}
+
+@TechReport{Fraley2007,
+  Title                    = {EnsembleBMA: An R package for probabilistic forecasting using ensembles and Bayesian model averaging},
+  Author                   = {Fraley, Chris and Raftery, Adrian E and Gneiting, Tilmann and Sloughter, J McLean},
+  Institution              = {DTIC Document},
+  Year                     = {2007}
+}
+
+
+\end{filecontents}
+
+\addbibresource{ensBMA-refs.bib}
+
+%======================================================================
+
+\begin{document}
+
+\section{Ensemble Bayesian Model Averaging \cite{Raftery2005}}
+
+Individual ensembles tend to be underdispersive; BMA is intended to counter this problem. Was already widely applied in social \& health sciences, but here applied to forecasts from dynamical models.
+
+Previous models had positive spread-error correlation (hence, useful prediction of forecast skill), but based on rank histograms were found to be underdispersive, and therefore uncalibrated; they capture some, but not all, of the sources of uncertainty. To obtain a calibrated forecast PDF from these uncalibrated ensembles, statistical post-processing is necessary. 
+
+\begin{description}
+\item[Calibrated:] intervals (or events) that are declared to have probability $P$ contain the truth (occur) a proportion $P$ of the time, on average, in the long run.
+
+\item[Sharp:] prediction intervals are narrower, on average, than those obtained from climatology. 
+\end{description}
+
+\textit{\small{BMA forecasts were found to be better calibrated than the raw ensemble, and sharp, in that 90\% BMA prediction intervals were 66\% shorter on average than those produced by sample climatology. Also yields a deterministic point forecast, which had root-mean-squared errors 7\% lower than the best ensemble members, and 8\% lower than the ensemble mean.}}
+
+\subsection{Ensemble post-processing using Bayesian Model Averaging}
+
+The BMA PDF is a weighted average mixture of the conditional PDFs of the individual ensemble members. By the law of total probability, 
+%
+\begin{eqnarray*}
+p(y|f_1, \dots, f_m; \theta_1, \dots, \theta_m) && = \sum_{i=1}^m p(M_i|y^T) \, p(y | M_i)  \\
+&&= \sum_{i=1}^m w_i \, g_i(y|f_i, \theta_i)
+\end{eqnarray*} 
+%
+
+The \textbf{conditional PDF} of the weather quantity of interest $y$, given that the forecast $f_i$ provided by ensemble member $i$ is the most skillful, is $p(y|M_i) = g_i(y|f_i, \theta_i)$,  with parameters $\theta_i$.
+
+The posterior probability of model $M_i$ being the best model, given the training data, gives the \textbf{BMA weights} $p(M_i | y^T) = w_i$, and reflects the performance of ensemble member $i$ during the training period.
+
+Temp \& sea level pressure are usually modelled as Gaussian mixtures; quantitative precipitation as a mixture of a point mass at 0 and a power-transformed gamma distribution \cite{Sloughter2007}; probabilistic wind speed as a gamma mixture \cite{Sloughter2010}
+
+\subsubsection{Bias correction}
+
+Member-specific parameters of the BMA model are estimated individually, prior to applying the EM algorithm. Bias correction is done for each ensemble member individually, usually by fitting a regression model to the training data. This can be considered as a very simple form of MOS.
+
+\begin{description}
+
+\item[Gaussian mixture model:] a linear regression model is fitted to the training data, and the conditional PDF $g_i(y|f_i)$ is approximated by a normal distribution centred at a linear function of the forecast: \[y|f_i \sim N(a_i + b_if_i, \sigma^2)\]
+
+\item[Quantitative precipitation:] a logistic regression model for the probability of precipitation is fitted for each ensemble member.
+\end{description}
+
+\subsubsection{Estimation of weights \& parameters}
+
+BMA weights $w_i$ and parameters $\theta_i$ of the component PDFs are estimated by maximum likelihood from training data: typically a temporally and/or spatially composited collection of past forecasts $f_{1, s, t}, \dots, f_{m, s, t}$ and their verifying observations $y_{s, t}$ at location $s$ and time $t$. The log-likelihood function $\ell$ is defined as the probability of the training data as a function of the $w_i$s and $\theta_i$s:
+%
+\[\ell(w_1, \dots, w_m; \theta_1, \dots, \theta_m) = \sum_{s, t} \log \left( \sum_{i=1}^m w_i g_i(y_{s, t} | f_{i, s, t}, \theta_i) \right)\] 
+%
+This does assume independence of forecast errors in space and time, which is unlikely to really be the case, but estimates are unlikely to be sensitive to this assumption because we are estimating the conditional distribution for a scalar observation given forecasts, rather than for several observations simmultaneously.
+
+Maximisation is carried out using the EM algorithm. The data are augmented with latent variable $z_{i,s , t}$, the probability of ensemble member $i$ being the most skillful forecast for location $s$ at time $t$. The `true' value of each $z_{i,s,t}$ is either 1 or 0, but during the estimation process, the values are not necessarily integers.
+
+\begin{algorithm}%[!ht] % EM algorithm for weights & parameters
+    \caption{EM algorithm to find weights \& parameters in Ensemble BMA}
+    \label{alg:EM-BMA}
+\vspace{5pt}
+
+\textbf{E-step:} Estimate $z_{i,s,t}$ at step $k+1$, given the weights \& PDFs at step $k$.
+%
+\vspace{5pt}
+\[ z_{i,s,t}^{(k+1)} = \frac{w_i^{(k)} g_i(y_{s,t} | f_{i,s,t}, \theta_i^{(k)})}%
+	{\sum\limits_{p=1}^m w_p^{(k)} g_p(y_{s,t}|f_{p,s,t}, \theta_p^{(k)})}\]
+%
+\vspace{5pt}
+
+\textbf{M-step:} Maximise partial expected complete-data log-likelihoods.
+%
+\[ w_i^{(k+1)} = \frac{1}{n}\sum_{s,t} z_{i,s,t}^{(k+1)} \]
+%
+\[ \theta_i^{(k+1)} = \sum_{s, t} \left[ \sum_{i=1}^m z_{i,s,t}^{(k+1)} \log \left( g_i(y_{s,t} | f_{i,s,t}, \theta_i) \right)\right]\]
+%
+\vspace{5pt}
+\end{algorithm}
+
+The model proposed by \cite{Raftery2005} constrains $\sigma$ to be the same for all ensembles. The estimate of $\sigma$ is optimized for the CRPS over the training data through a numerical search (eg. \texttt{optim}), keeping the other parameters fixed.
+
+The training set consists of a sliding window of forecasts and observations for the preious $n$ days.
+
+
+
+
+
+For the Gaussian mixture model, optimization can be done analytically; for gamma mixtures, numerical optimisation is needed. An MCMC-based alternative has been proposed, with similar predictive results although much more computationally intensive \cite{Vrugt2008}
+
+
+
+
+
+
+
+\subsubsection{Predictive variance decomposition}
+
+The BMA predictive variance of $y_{s,t}$, given the ensemble of forecasts, can be written as
+%
+\[\mathbb{V}\text{ar}(y_{s,t} | f_{1,s,t}, \dots, f_{m,s,t}) = 
+\sum_{i=1}^m w_i \left( (a_i + b_i f_{i,s,t}) - 
+\sum_{j=1}^m w_j (a_j + b_j f_{j,s,t}) \right) ^2 + \sigma^2\]
+%
+where the first term of the RHS summarises the between-forecast variance (ensemble spread), and $\sigma^2$ measures the expected uncertainty conditional on one of the forecasts being best (within-forecast variance). BMA therefore accounts for the possibility that ensembles may be underdispersive.
+
+\subsubsection{Length of training period}
+
+Short training periods allow a more rapid response to changes; longer training period gives better estimation of BMA parameters. Authors \quoth{were guided by principle of maximising sharpness subject to calibration, that is, to make the prediction intervals as short as possible subject to their having the right coverage}; also to favour shorter training periods over longer ones with comparable performance, in order to adapt as quickly as possible to changes in relative performance between ensemble members.
+
+Generally: shorter training periods yield sharper forecasts. Increasing the training period beyond 25 days seemed largely unhelpful.
+
+\subsubsection{General comments}
+
+Implemented in package \texttt{ensembleBMA} \cite{Fraley2007}.
+
+Ensemble weights may be used for model selection, in cases where the some ensemble weights are particularly small. Rank order of weights tends to be similar to that of the forecast RMSE, but the relationship is not direct - it is also affected by correlations between forecasts (ie. if forecasts $c$ and $d$ are highly correlated, then once forecast $c$ is known, forecast $d$ provides little additional information)
+
+BMA forecast PDF can be represented as an equally-weighted ensemble of any desired size, by simulating potential observations:
+\begin{itemize}
+\item[1.] Generate values of $i$ from $\{1, \dots, m\}$, with probabilities $\{w_1, \dots, w_m\}$
+\item[2.] Generate corresponding values of $y$ from $g_i(y|f_i)$
+\end{itemize}
+
+\vspace{12pt}
+
+Separate models are fitted for each lead time.
+
+In case study used in \cite{Raftery2005}, the verifying observation fell outside of the ensemble range in 71\% of cases.
+
+\todo{Does ensembleBMA return the linear bias corrections for each ensemble? Interested to see how much of improvement is due to this, how much due to the actual BMA}
+
+\todo{Does final package still constrain a common $\sigma$? Since we're using ensemble means, this seems overly simplistic (for example, what's the difference if we include all 93 ensemble members, with exchangeability? Do we get a better-calibrated model or does it just ignore that information?}
+
+\todo{What about running ensembleBMA over control forecasts instead of perturbations? Or using both, with members flagged as exchangeable, rather than going straight to ensemble mean?}
+
+\todo{Apply linear-regression bias correction to each ensemble member to see how much of a difference it makes. Also to try to identify those coefficients in the BMA output.}
+
+
+
+%---------------------------------------------------------------------------------------
+
+
+\section{Calibrating multimodel forecast ensembles with exchangeable and missing members using Bayesian model averaging \cite{Fraley2010}}
+
+The standard form of the EM algorithm in \autoref{alg:EM-BMA} assumes that none of the ensemble member forecasts $f_{i,s,t}$ are missing, and that the ensemble members are individually distinguishable. \cite{Fraley2010} extends basic ensemble BMA of \cite{Raftery2005} by including ability to account for missing or exchangeable ensemble members. 
+
+Training sets for exchangeable members are merged to estimate a single common regression model for each exchangeable group. Instances with the given ensemble member missing are excluded from the training set.
+
+Allowing exchangeability speeds up post-processing by reducing the number of models that need to be fitted; when exchangeability assumptions were omitted, the resulting weights were very similar, but at much greater computational cost \cite[\textit{\S 3c}]{Fraley2010}.
+
+\quoth{Contrary to earlier studies, our results show that statistically post-processed multimodel ensembles are likely to outperform any of the raw or postprocessed constituent ensembles.}
+
+
+\subsection{Exchangeable ensemble members}
+
+Ensemble members that are statistically indistinguishable should be treated as exchangeable, and so should have equal BMA weight and equal BMA parameter values.
+
+For Gaussian temperature mixture model, SD is already constrained to be equal across all members \cite{Raftery2005}, so the only changes in this case are added constraints that the BMA mean/bias parameters and BMA weights must be equal. In gamma models for quantitative precipitation and wind speed, the variance parameters need to be constrained to be equal within exchangeable groups.
+
+Assuming that there are $I$ exchangeable groups, with the $i$th exchangeable group having $m_i \ge 1$ exchangeable members, we can rewrite the BMA mixture distribution as
+%
+\[p(y | \{f_{i,j}\}_{i=1,\dots, I, j=1, \dots, m}; \{\theta_i\}_{i=1,\dots, I}%
+ = \sum_{i=1}^I \sum_{j=1}^{m_i} w_i g_i (y|f_{i,j}, \theta_i)\]
+giving  updated EM steps as in \autoref{alg:EM-exch}.
+
+\begin{algorithm}%[!ht] % EM algorithm with exchangeability
+    \caption{EM algorithm for exchangeable groups}
+    \label{alg:EM-exch}
+\vspace{5pt}
+
+\textbf{E-step:} \textit{(now averaging over ensemble members in each exchangeable group)}
+%
+\vspace{5pt}
+\[ z_{i,j,s,t}^{(k+1)} = \frac{w_i^{(k)} g_i(y_{s,t} | f_{i,j,s,t}, \theta_i^{(k)})}%
+	{\sum\limits_{p=1}^I \sum\limits_{q=1}^{m_p} w_p^{(k)} g_p(y_{s,t}|f_{p,q,s,t}, \theta_p^{(k)})}\]
+%
+\vspace{5pt}
+
+\textbf{M-step:} \textit{(now averaging over ensemble members in each exchangeable group)}
+%
+\[ w_i^{(k+1)} = \frac{1}{n}\frac{1}{m_i}\sum_{s,t} \sum_{j=1}^{m_i} z_{i,j,s,t}^{(k+1)} \]
+%
+\[ \theta_i^{(k+1)} = \sum_{s, t} \left[ \sum_{i=1}^I \sum_{j=1}^{m_i} z_{i,j,s,t}^{(k+1)} \log \left( g_i(y_{s,t} | f_{i,js,t}, \theta_i) \right) \right]\]
+%
+\vspace{5pt}
+\end{algorithm}
+
+Running BMA without the exchangeability assumption led to very similar weights, but was computationally much more expensive.
+
+
+\subsection{Missing ensemble members}
+
+Even in TIGGE, ensemble members may be missing for weeks or months at a time \cite{Park2008} \textit{(in 2006, 16.2\% of temperature forecasts had missing member forecasts)}. If we were to exclude instances with missing members from the forecast altogether, we would be losing a lot of potentially useful information. We still want to fit a full BMA model with terms for all ensemble members, even those with instances $(s,t)$ that lack one or more ensemble member forecasts.
+
+\begin{algorithm}%[!ht] % EM algorithm with missing members - no exchangeability
+    \caption{EM algorithm to fit full BMA model with missing ensemble members}
+    \label{alg:EM-missing}
+\vspace{5pt}
+
+    \SetKwInOut{Define}{Define}
+
+    \Define{$\mathcal{A}_{s,t} = \{ i$:  ensemble member $i$ available for instance $(s,t) \}$ \\
+    \vspace{5pt}}
+
+\textbf{E-step:} \textit{Denominator is now normalised to account for missing ensemble members.}
+%
+\vspace{5pt}
+\[ z_{i,s,t}^{(k+1)} = \frac{w_i^{(k)} g_i (y_{s,t} | f_{i,s,t}, \theta_i^{(k)})}
+	{\sum\limits_{p\in \mathcal{A}_{s,t}} w_p^{(k)} g_p (y_{s,t}|f_{p,s,t}, \theta_p ^{(k)} ) \bigg/
+	 \sum\limits_{q \in \mathcal{A}_{s,t}} w_p^{(k)}}\]
+%
+\vspace{5pt}
+
+\textbf{M-step:}  \textit{Partial expected complete-data log-likelihood is renormalized:}
+%
+\[ w_i^{(k+1)} = \frac{\sum\limits_{s,t} z_{i,s,t}^{(k+1)}}%
+	{\sum\limits_{s,t} \sum\limits_{p=1}^m z_{p,s,t}^{(k+1)}} \]
+%
+\[ \theta_i^{(k+1)} = \sum\limits_{s, t} \left[\frac{ \sum\limits_{p \in \mathcal{A}_{s,t}} z_{p,s,t}^{(k+1)} \log \left( g_p(y_{s,t} | f_{p,s,t}, \theta_p \right)}
+	{\sum\limits_{q \in \mathcal{A}_{s,t}} z_{q,s,t}^{(k+1)}} \right]\]
+%
+\vspace{5pt}
+\end{algorithm}
+
+A full model for handling missing members with exchangeability is also given in the appendix to \cite{Fraley2010}, but not included here.
+
+The full BMA model fitted using \autoref{alg:EM-missing} cannot be used for \textbf{forecasting} when one or more of the members are missing. Several approaches are offered (essentially, replacing missing members with the mean or median of the nonmissing members, or using single imputation as in R package \texttt{norm}), with the authors recommending a renormalizing approach, in which the model is reduced to the terms for the nonmissing forecasts, with the BMA weights renormalized to sum to 1. A small quantity (eg. 0.0001) should be added to each weight before renormalizing, to account for cases in which all nonmissing members have small weights.
+
+Alernatively, if a member is missing for a particular day of interest, just fit a multi-model ensemble without it. (This seems the easiest way, since daily models are fitted independently of one another)
+
+
+
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\FloatBarrier
+
+\hrulefill
+%\newpage
+\printbibliography
+\hrulefill
+
+
+\appendix
+
+\section{Related weather models}
+
+\begin{table}[!ht]
+\caption{Members of University of Washington Mesoscale Ensemble, used in \cite{Fraley2010}. \\The eight ensemble mambers are nonexchangeable.}
+%
+\begin{tabular}{l l l}
+\hline
+\textbf{Member} & \textbf{Source} & \textbf{Driving Synoptic model} \\
+\hline
+GFS &  NCEP & Global Forecast System \\
+ETA & NCEP & Limited-Area Mesoscale Model \\
+CMCG & CMC & Global-Environment Multiscale Model \\
+GASP & ABM & Global Analysis and Prediction Model \\
+JMA & JMA & Global Spectral Model \\
+NGPS & FNMOC & Navy Operational Global Atmospheric Prediction System \\
+TCWB &  TCWB &  Global Forecast System \\
+UKMO & UKMO & Unified Model \\
+\hline
+\end{tabular}
+\end{table}
+
+
+
+\end{document}

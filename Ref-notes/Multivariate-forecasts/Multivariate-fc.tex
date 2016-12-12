@@ -1,0 +1,339 @@
+\documentclass[10pt,fleqn]{article}
+\usepackage{/home/clair/Documents/mystyle}
+
+%----------------------------------------------------------------------
+% reformat section headers to be smaller \& left-aligned
+\titleformat{\section}
+	{\normalfont\bfseries}
+	{\thesection}{1em}{}
+	
+\titleformat{\subsection}
+	{\normalfont\bfseries}
+	{\thesubsection}{1em}{}
+	
+%----------------------------------------------------------------------
+
+\addtolength{\topmargin}{-0.5cm}
+\addtolength{\textheight}{1cm}
+
+%----------------------------------------------------------------------
+
+\begin{filecontents}{Multivar-refs.bib}
+
+@Article{Gneiting2008,
+  Title                    = {Assessing probabilistic forecasts of multivariate quantities, with an application to ensemble predictions of surface winds},
+  Author                   = {Gneiting, Tilmann and Stanberry, Larissa I and Grimit, Eric P and Held, Leonhard and Johnson, Nicholas A},
+  Journal                  = {Test},
+  Year                     = {2008},
+  Number                   = {2},
+  Pages                    = {211--235},
+  Volume                   = {17},
+
+  Publisher                = {Springer},
+}
+
+@Article{Gneiting2007,
+  Title                    = {Probabilistic forecasts, calibration and sharpness},
+  Author                   = {Gneiting, Tilmann and Balabdaoui, Fadoua and Raftery, Adrian E},
+  Journal                  = {Journal of the Royal Statistical Society: Series B (Statistical Methodology)},
+  Year                     = {2007},
+  Number                   = {2},
+  Pages                    = {243--268},
+  Volume                   = {69},
+
+  Publisher                = {Wiley Online Library},
+}
+
+@Article{DelleMonache2006,
+  Title                    = {Probabilistic aspects of meteorological and ozone regional ensemble forecasts},
+  Author                   = {Delle Monache, Luca and Hacker, Joshua P and Zhou, Yongmei and Deng, Xingxiu and Stull, Roland B},
+  Journal                  = {Journal of Geophysical Research: Atmospheres},
+  Year                     = {2006},
+  Number                   = {D24},
+  Volume                   = {111},
+
+  Publisher                = {Wiley Online Library}
+}
+
+@Article{Berrocal2007,
+  Title                    = {Combining spatial statistical and ensemble information in probabilistic weather forecasts},
+  Author                   = {Berrocal, Veronica J and Raftery, Adrian E and Gneiting, Tilmann},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2007},
+  Number                   = {4},
+  Pages                    = {1386--1402},
+  Volume                   = {135},
+}
+
+@Article{Hamill2001,
+  Title                    = {Interpretation of rank histograms for verifying ensemble forecasts},
+  Author                   = {Hamill, Thomas M},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2001},
+  Number                   = {3},
+  Pages                    = {550--560},
+  Volume                   = {129}
+}
+
+@InCollection{Smith2001,
+  Title                    = {Disentangling uncertainty and error: On the predictability of nonlinear systems},
+  Author                   = {Smith, Leonard A},
+  Booktitle                = {Nonlinear dynamics and statistics},
+  Publisher                = {Springer},
+  Year                     = {2001},
+  Pages                    = {31--64},
+}
+
+@Article{Kruskal1956,
+  Title                    = {On the shortest spanning subtree of a graph and the traveling salesman problem},
+  Author                   = {Kruskal, Joseph B},
+  Journal                  = {Proceedings of the American Mathematical society},
+  Year                     = {1956},
+  Number                   = {1},
+  Pages                    = {48--50},
+  Volume                   = {7},
+
+  Publisher                = {JSTOR},
+}
+
+@Article{Ishida2005,
+  Title                    = {Scanning multivariate conditional densities with probability integral transforms},
+  Author                   = {Ishida, Isao and others},
+  Journal                  = {Center for Advanced Research in Finance, University of Tokyo, Working Paper F-045},
+  Year                     = {2005}
+}
+
+@Article{Box1980,
+  Title                    = {Sampling and Bayes' inference in scientific modelling and robustness},
+  Author                   = {Box, George EP},
+  Journal                  = {Journal of the Royal Statistical Society. Series A (General)},
+  Year                     = {1980},
+  Pages                    = {383--430},
+  Publisher                = {JSTOR},
+}
+
+@InCollection{OHagan2003,
+  Title                    = {HSSS model criticism},
+  Author                   = {A O'Hagan},
+  Booktitle                = {Highly structured stochastic systems},
+  Publisher                = {Oxford},
+  Year                     = {2003},
+  Editor                   = {PJ Green, NL Hjort, Sylvia Richardson},
+  Pages                    = {423-444},
+}
+
+
+\end{filecontents}
+
+
+\addbibresource{Multivar-refs.bib}
+
+%======================================================================
+
+\begin{document}
+
+
+\section{Assessing probabilistic forecasts of multivariate quantities, with an application to ensemble predictions of surface winds \cite{Gneiting2008}}
+
+
+Looks at situation where data is multivariate, but of small dimension (say, $d=2$). Large-dimensional forecasts are often represented in terms of low-dimensional functionals, to which the proposed methods an be applied.
+
+Nice definition attributed to \cite{Gneiting2007}: \quoth{the goal of probabilistic forecasting is to maximize the sharpness of the predictive distributions subject to calibration. Calibration refers to the statistical consistency between the probabilistic forecasts and the observations, and is a joint property of the predictive distributions and the vector-valued events that materialize. Sharpness refers to the concentration of the predictive distributions, and is a property of the forecasts only: The sharper the distributional forecasts, the less the uncertainty, and the sharper, the better, subject to calibration.}
+
+\subsection{Assessing calibration in ensemble forecasts}
+
+\subsubsection*{Multivariate rank histogram}
+
+The multivariate rank is uniform if the ensemble members and the verifying observation are exchangeable. When $d=1$, this is simply the univariate rank histogram.
+
+\begin{algorithm}%[!ht] % calculate multivariate ensemble ranks
+    \caption{Multivariate rank verification histogram}
+	\label{alg:mv-rank-hist}
+\vspace{5pt}
+
+    \SetKwInOut{Input}{Input}
+    \SetKwInOut{Note}{Note}
+
+    \Input{Ensemble forecast $\left\{ \mathbf{X}_j \in \mathbb{R}^d:j=1, \dots, m \right\}$ \\
+    Verifying observation $\mathbf{x_0} \in \mathbb{R}^d$\\
+    \vspace{5pt}}
+    		 
+    \Note{for vectors $\mathbf{x} = (x_1, \dots, x_d)' \in \mathbb{R}^d$ and $\mathbf{y} = (y_1, \dots, y_d)' \in \mathbb{R}^d, \mathbf{x} \le \mathbf{y} \,\, \text{iff} \,\,  x_i \le y_i \,  \forall \, i \in 1:d.$}
+    \vspace{5pt}
+
+
+\textbf{Standardize} \textit{(optional, but often useful)}:
+Apply a principal component transform to the pooled set $\left\{ \mathbf{X}_j:0=1, \dots, m \right\}$, to obtain a standardized observation $\mathbf{x}_0^*$ and standardized ensemble member forecasts $\mathbf{x}_j^*$
+%
+\vspace{5pt}
+
+
+\textbf{Assign pre-ranks:}
+For $j = 0, 1, \dots, m$, find the pre-rank $\rho_j$ of $\mathbf{x}_j^*$ among the union of the observation and ensemble member forecasts. 
+%
+\[ \rho_j = \sum_{k=0}^m \mathbbm{1}_{\{ \mathbf{x}_k^* \le \mathbf{x}_j^*\}} \]
+%
+Each pre-rank is an integer between 1 and $m+1$.
+%
+\vspace{5pt}
+
+
+\textbf{Find the multivariate rank:} The multivariate rank $r$ is the rank of the observation pre-rank, with ties resolved at random. Specifically, if
+%
+\begin{align*}
+s^< = \sum_{j=0}^m \mathbbm{1}_{\{\rho_j < \rho_0\}} && \text{and} && s^= = \sum_{j=0}^m \mathbbm{1}_{\{\rho_j = \rho_0\}}, 
+\end{align*}
+%
+the multivariate rank $r$ is chosen from a discrete uniform distribution on the set $\left \{ s^< + 1, \dots, s^< + s^= \right\}$. It is an integer between 1 and $m+1$.
+%
+\vspace{5pt}
+
+\end{algorithm}
+
+Diagnostic interpretation:
+%
+\begin{itemize}
+
+\item Underdispersed ensembles will produce U-shaped histograms (obs is too often in the tails)
+
+\item Overdispersed ensembles will produce peaked histograms (obs is too often in the centre)
+
+\item Biased ensembles will produce skewed histograms (left-tailed: cold bias, obs is often warmer. Right-tailed: warm bias, obs is often cooler)
+
+\item Uniform in centre, with slight increase in outermost bins: generally well calibrated, observations may have heavier tails than ensemble members.
+\end{itemize}
+
+\subsubsection*{Minimum spanning tree (MST) histogram}
+
+Another diagnostic tool for checking the calibration of multivariate ensemble forecasts \cite{Smith2001}. A \textbf{spanning tree} is a collection of $m-1$ edges such that all points are used; the spanning tree with the smallest length is the minimum spanning tree \cite{Kruskal1956}. Similar construction to multivariate rank histogram; if the ensemble members and the observation are exchangeable, the lengths are exchangeable, and so the MST rank is uniform. 
+
+Construction fails if dimension $d=1$
+
+\begin{algorithm}%[!ht] % calculate multivariate ensemble ranks
+    \caption{Minimum spanning tree rank histogram}
+	\label{alg:mv-rank-hist}
+\vspace{5pt}
+
+    \SetKwInOut{Input}{Input}
+    \SetKwInOut{Note}{Note}
+
+    \Input{Ensemble forecast $\left\{ \mathbf{X}_j \in \mathbb{R}^d:j=1, \dots, m \right\}$ \\
+    Verifying observation $\mathbf{x_0} \in \mathbb{R}^d$\\
+    \vspace{5pt}}
+
+
+\textbf{Standardize} \textit{(optional, but often useful)}:
+Apply a principal component transform to the pooled set $\left\{ \mathbf{X}_j:0=1, \dots, m \right\}$, to obtain a standardized observation $\mathbf{x}_0^*$ and standardized ensemble member forecasts $\mathbf{x}_j^*$
+%
+\vspace{5pt}
+
+
+\textbf{Compute minimum spanning trees:}
+For $j = 0, 1, \dots, m$, find the minimum spanning tree (MST) of the set $\{ \mathbf{x}_k^*: k \in \{ 0,1, \dots, m\} \backslash \{j\}\}$ and its length $l_j > 0$.
+%
+\vspace{5pt}
+
+
+\textbf{Find MST rank:} The MST rank $r$ is the rank of $l_0$ within the pooled sample of MST lengths, with ties resolved at random as before.
+\vspace{5pt}
+
+\end{algorithm}
+
+Ties are rare, so randomization can typically be avoided. 
+
+The MST rank histogram is based on distances and therefore depends strongly on the units used - this dependency is much less pronounced in the multivariate rank histogram. (The application given in \cite{Gneiting2008} omits standardization and uses Euclidean distance in constructing MSTs.)
+
+Deviations from uniformity can be interpreted diagnostically, but interpretation differs from that of the rank histogram, in that it provides a centre-outward ordering:
+%
+\begin{itemize}
+
+\item For an underdispersed or biased ensemble, the lowest MST ranks are over-populated (outliers)
+
+\item For an overdispersed ensemble, the highest ranks occur too often (inliers)
+
+\end{itemize}
+
+\subsubsection*{Quantifying deviation from uniformity}
+Deviation from uniformity in a verification rank histogram/Talagrand diagram for an ensemble of size $m$ can be quantified using the discrepancy or reliability index
+%
+\[ \Delta = \sum_{j=1}^{m+1} \left\vert f_j - \frac{1}{m+1} \right \vert, \]
+%
+where $f_j$ is the observed relative frequency of rank $j$ \cite{DelleMonache2006, Berrocal2007}.
+
+Formal tests of uniformity are also available, but require care in interpretation \cite{Hamill2001}
+
+\subsection{Assessing calibration in density forecasts}
+
+Here, calibration requires that the realizing observation is indistinguishable from a random draw from the predictive density. Can be interpreted in terms of exchangeability: the verifying observation and the members of a simple random sample drawn from the predictive distribution are exchangeable. We can therefore generate an ensemble forecast from the predictive density and apply the above tools.
+
+In univariate case, we can use PIT (the value attained by the CDF at the observation) as a continuous analogue to the verification rank histogram. Several other possible multivariate alternatives are suggested.
+
+\subsubsection*{Box Density Ordinate Transform}
+
+(BOT): was proposed in \cite{Box1980} and \cite{OHagan2003}, as a model checking tool.
+
+If a predictive density for a future quantity is $f$ and $\mathbf{x}_0$ materializes, the BOT is
+%
+\[u = 1-P \left( f(\mathbf{X}) \le f(\mathbf{x}_0) \right), \]
+
+where $\mathbf{X}$ is a random vector with density $f$. For example, if $f$ is a $d$-variate normal density with mean $\boldsymbol{\mu}$ and covariance matrix $\boldsymbol{\Sigma}$, then
+
+\[ u = 1- \chi^2_d \left( (\mathbf{x}_0 -\boldsymbol{\mu})'  \boldsymbol{\Sigma}^{-1} (\mathbf{x}_0 -\boldsymbol{\mu}) \right) \] 
+
+equals one minus the CDF of a chi-square distribution with $d$ degrees of freedom when evaluated at the standardized observation.
+
+Like the MST rank, the BOT provides a centre-outward ordering, with outliers tending to low values, and inliers to high values.  
+
+\subsubsection*{Marginal calibration}
+
+Justification: if we assume ensemble members \& realizations to be exchangeable, and composite over forecast cases in a steady state, then we expect the empirical distribution of the ensemble values to be statistically compatible with that of the realizations. A marginal calibration diagram compares the two empirical distributions, and may be used diagnostically to unmask dispersion errors \& forecast biases.
+
+
+\subsection{Assessing sharpness}
+\quoth{The term sharpness refers to the concentration of the predictive distributions, which is a property of the forecasts only. There is a strong dependence on the units used and components that are incommensurable, or incomparable in magnitude, call for standardization. As noted above, the sharper the probabilistic forecast, the less the uncertainty, and the sharper, the better, subject to calibration.}
+
+Roughly speaking: sharper is better (as long as the density is well calibrated), and a more concentrated distribution is sharper.
+
+Univariate spread is usually quantified using ensemble range/SD. Various multivariate approaches are mentioned; preferred approach here is the determinant sharpness
+
+\[ DS = (\text{det} \boldsymbol{\Sigma})^{1/(2d)} \]
+
+This generalises the univariate standard deviation and applies to ensembles of size $m > d$, as well as to density forecasts (provided second moments exist).
+
+\subsection{Energy score: a multivariate generalisation of the CRPS}
+
+The univariate CRPS is defined as
+\begin{align*}
+CRPS(f, x) =& \int_{-\infty}^\infty \left( F(y) - \mathbbm{1}_{\{y \ge x \}} \right)^2 dy \\
+=& \, E_f \vert X-x \vert - \frac{1}{2} E_f \vert X-X' \vert
+\end{align*}
+
+where $X$ and $X'$ are independent random variables with distribution $f$ and CDF $F$. 
+
+The energy score is a multivariate analogue, and reduces to the CRPS when $d=1$:
+%
+\[ es(f, \mathbf{x}) = E_f \Vert \mathbf{X}- \mathbf{x} \Vert - \frac{1}{2} E_f \Vert \mathbf{X} - \mathbf{X}' \Vert, \]
+where $\Vert \cdot \Vert$ denotes the Euclidean norm and $\mathbf{X}$ and $\mathbf{X}'$ are independent random vectors with distribution $f$. For bivariate normal and related predictive densities, this can be replaced by a computationally efficient Monte Carlo approximation, using a simple random sample $\mathbf{x}_1, \dots, \mathbf{x}_k$ of size $k=10000$ from the predictive density:
+%
+\[\widehat{es}(f, \mathbf{x}) =  \frac{1}{k} \sum_{i=1}^k \Vert \mathbf{x}_i - \mathbf{x} \Vert - \frac{1}{2(k-1)}\sum_{i=1}^{k-1} \Vert \mathbf{x}_i - \mathbf{x}_{i+1} \Vert. \]
+
+If $f = f_{ens}$ is an \textbf{ensemble forecast} of size $m$, the predictive distribution $f_{ens}$ places point mass $1/m$ on the ensemble members $x_1, \dots, x_m \in \mathbb{R}^d$, and the energy score reduces to
+%
+\[ es(f_{ens}, \mathbf{x}) = \frac{1}{m} \sum_{j=1}^m \Vert \mathbf{x}_j - \mathbf{x} \Vert - \frac{1}{2m^2} \sum_{i=1}^m \sum_{j=1}^m \Vert \mathbf{x}_i - \mathbf{x}_j \Vert. \]
+
+If $f = \delta_{\boldsymbol{\mu}}$ is the point measure in $\boldsymbol{\mu} \in \mathbb{R}^d$ (that is, a deterministic forecast), the energy score reduces to the Euclidean norm of the error vector:
+%
+\[ es(\delta_{\boldsymbol{\mu}}, x) = \Vert \boldsymbol{\mu} - \mathbf{x} \Vert.\]
+
+We can therefore compare deterministic forecasts, discrete ensemble forecasts and density forecasts using the energy score, which has the same units as the original components.
+
+If the components are in different units (especially in different orders of magnitude) then a standardization is advisable.
+
+Other types of proper scoring rules are available for density forecasts; references for these are given in \cite{Gneiting2008}.
+
+\hrulefill
+%\newpage
+\printbibliography
+
+
+\end{document}
