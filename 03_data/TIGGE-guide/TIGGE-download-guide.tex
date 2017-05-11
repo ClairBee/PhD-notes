@@ -1,0 +1,253 @@
+\documentclass[10pt,fleqn]{article}
+\usepackage{/home/clair/Documents/docstyle}
+
+\usepackage{framed}
+\usepackage{array}
+\lstset{language = python,
+	basicstyle = \ttfamily\footnotesize,
+    commentstyle = \color{blue}\textit,
+	keywordstyle = \color{purple},
+    tabsize = 4,
+    breakatwhitespace = true,
+	showspaces = false,
+    xleftmargin = .75cm,
+	extendedchars = true}
+
+\usepackage{pifont}
+\newcommand{\xmark}{\ding{51}}
+	
+% If including  bibliography, configure quick build > PdfLaTeX + Bib(La)TeX + PdfLaTeX (x2) + view PDF
+
+%----------------------------------------------------------------------
+% reformat section headers to be smaller \& left-aligned
+\titleformat{\section}{\normalfont\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\bfseries}{\thesubsection}{1em}{}
+	
+%----------------------------------------------------------------------
+
+%\addtolength{\topmargin}{-0.5cm}
+%\addtolength{\textheight}{1cm}
+
+%======================================================================
+
+\begin{document}
+
+
+\section*{Getting started}
+
+See the \href{https://software.ecmwf.int/wiki/display/WEBAPI/Access+ECMWF+Public+Datasets}{ECMWF guide to accessing public datasets} for detailed  instructions.
+
+\textbf{Initial setup:}
+
+\begin{itemize}
+
+\item \href{https://apps.ecmwf.int/registration/}{Register} with the ECMWF
+
+\item Once logged in, retrieve your \href{https://api.ecmwf.int/v1/key/}{API key} and paste it into \texttt{\$HOME/user/.ecmwfapirc}
+
+\item Before downloading anything, you must \href{http://apps.ecmwf.int/datasets/data/interim-full-daily/licence/}{accept the terms and conditions}
+\item Install the python \texttt{ecmwfapi} library \\[5pt]
+\resizebox{0.95\textwidth}{!}{
+	\begin{tabular}{l>{\ttfamily}l}
+	Linux: & sudo apt-get install python-pip \\
+			& sudo pip install https://software.ecmwf.int/wiki/download/attachments/56664858/ecmwf-api-client-python.tgz\\
+	\end{tabular}
+}
+\end{itemize}
+
+\vspace{10pt}
+\textbf{Downloading data}:
+
+Publicly available datasets are listed \href{http://apps.ecmwf.int/datasets/}{here}. Each has a GUI to select and download subsets of the available data (in .GRIB or .NETCDF format), or produce a python script for efficient batch download (`view the MARS request').
+
+Your current job list can be viewed at \url{http://apps.ecmwf.int/webmars/joblist/}
+
+MARS server activity (including the time taken to process other users' requests) can be viewed at \url{http://apps.ecmwf.int/mars-activity/} - unfortunately, this won't necessarily help to gauge how long your request is likely to spend in a queue, only how long it will take to process.\\[10pt]
+
+\begin{framed}
+
+\flushleft{\textbf{Size of available ensemble forecasts in TIGGE and S2S repositories}} \\[10pt]
+% origin
+\begin{tabular}{c>{\ttfamily}cccl}
+& \textbf{origin}& \textbf{\href{https://software.ecmwf.int/wiki/display/TIGGE/Models}{TIGGE}} & \textbf{\href{https://software.ecmwf.int/wiki/display/S2S/Models}{S2S}} & \\
+BoM & ammc &20 &$3\times11$ & Bureau of Meteorology (Aus) \\
+CMA & babj &14 &4 & China Meteorological Association \\
+CMC & cwao &20 &-& Meteorolocal Service of Canada \\
+CNR-ISAC & isac &-&41 & Institute of Atmospheric Sciences \& Climate (Italy)\\
+CNRM & lfpw &-&51 & National Centre for Meteorological Research (Fr)\\
+CPTEC & sbsj &14 &-& Centro de Previs\~{a}o de Tempo e Estudos Clim\'{a}ticos (Br) \\
+ECMWF & ecmf &50 &51 &  European Centre for Medium-range Weather Forecast \\
+HMCR & rums &-&20 & Hydrometeorological Centre of Russia\\
+JMA & rjtd &26 &25 & Japan Meteorological Agency \\
+KMA & rksl & 23 & 4 & Korea Meteorological Administration\\
+NCEP & kwbc &20 &16 & National Centers for Environmental Prediction (US) \\
+UKMO & egrr &11 &4 & UK Met Office\\
+\end{tabular}
+
+\end{framed}
+
+
+\newpage
+
+\section*{Batch data retrieval using Python}
+Some commands and parameters can only be accessed using batch processing, so writing a Python script directly may be necessary. A guide to all keywords can be found \href{https://software.ecmwf.int/wiki/display/UDOC/Identification+keywords#Identificationkeywords-class}{here}\\[7pt]
+
+\begin{framed}
+\textbf{General structure for download}
+\begin{lstlisting}
+#!/usr/bin/env python								# run python
+from ecmwfapi import ECMWFDataServer				# download from ECMWF portal
+server = ECMWFDataServer()							# 			"
+    
+server.retrieve({
+    "class"     : "...",							# class must match dataset and stream
+    "dataset"   : "...",
+   	"stream"    : "....",							
+    "type"      : "..",								# must be compatible with class, dataset, type
+    "origin"	: "xxxx",							# forecasting centre (ensemble name)
+    "number"	: "1/to/n",							# perturbed ensemble members to include (if applicable)
+    "levtype"   : "...",							# atmospheric levels of interest
+    "param"     : ".../.../.../..."					# parameters of interest
+    "grid"      : "nn/nn",							# grid resolution (lat/long): must be integer fraction of 90
+    "area"		: "70/-10/30/40"					# lat/long boundaries of area to extract: N/W/S/E
+    "date"      : "yyyy-mm-dd/to/yyyy-mm-dd",		# date of analysis/forecast/observation
+    "time"      : "00/06/12/18",					# analysis/forecast time in synoptic hours
+    "step"      : "0",								# forecast time steps from forecast base time in hours (HH)
+    "hdate"		: "19810206/19820206/19830206",		# hindcast base date (S2S only)
+    "target"    : "filename.grib"					# target filename
+})
+\end{lstlisting}
+\end{framed} % ERA-interim
+
+% class & dataset
+\begin{tabular}{>{\ttfamily}l>{\ttfamily}l>{\ttfamily}ll}
+\textbf{\href{http://apps.ecmwf.int/codes/grib/format/mars/class/}{class}} & \textbf{dataset} & \textbf{\href{http://apps.ecmwf.int/codes/grib/format/mars/stream/}{stream}} & \\
+ei & interim & oper & ERA-interim reanalysis data: atmospheric model \textit{(ie. weather)}\\
+s2 & s2s & enfh & Subseasonal-to-seasonal data (up to 60 days): ensemble forecast hindcasts\\
+ti & tigge & enfo & TIGGE medium-range forecasts (up to 14 days): ensemble prediction system\\
+\end{tabular}
+
+% type
+\begin{tabular}{>{\ttfamily}cl}
+\textbf{\href{http://apps.ecmwf.int/codes/grib/format/mars/type/}{type}} & \\
+an & Analysis \\
+cf & Control forecast\\
+cl & Climatology \\
+pf & Perturbed forecast\\
+em & Ensemble mean\\
+es & Ensemble SD\\
+\end{tabular}
+
+%levtype
+\begin{tabular}{>{\ttfamily}cl>{\ttfamily}l}
+\textbf{levtype} & & \textbf{levlist}\\
+sfc & Surface & NA \\
+pl & Pressure level (hPA) & 200/250/300/500/700/850/925/1000\\
+\end{tabular}
+
+% parameters
+\begin{tabular}{>{\ttfamily}c>{\ttfamily}c>{\ttfamily}cll}
+\textbf{\href{http://apps.ecmwf.int/codes/grib/param-db/}{ERA-Interim}} & \textbf{ECMWF} & \textbf{S2S}&\\
+167.128 & 167 & &2m temperature & k\\
+- & 172 && land-sea mask & (0-1) \\
+228.128 &&& Total precipitation & (m) \\
+165.128 &&& 10m U-component of wind & ms$^{-1}$\\
+166.128 &&& 10m V-component of wind & ms$^{-1}$\\
+151.128 &&& Mean sea level pressure & Pa\\
+164.128 &&& Total cloud cover & (0-1) \\
+\end{tabular}
+
+\newpage
+
+\begin{framed}
+\textbf{Example of batch data retrieval into multiple files using Python}
+
+\begin{lstlisting}
+import time																# record time taken to process
+from ecmwfapi import ECMWFDataServer
+server = ECMWFDataServer()
+ 
+start_date=['20140201']													# specify date range of interest
+end_date=['20140228']
+ 
+for s, e in zip(start_date, end_date):									# iterate over range
+  try:
+    server.retrieve({
+      # specify source, parameters etc as usual
+      'date'    : '{0}/to/{1}'.format(s, e),
+      'target'  : 'cptec_{0}-{1}_T0_T360_00_12.grib'.format(s, e)		# download for each date in range
+    })
+ 
+  except Exception, err:
+    print err
+\end{lstlisting}
+\end{framed}
+
+\newpage
+
+\section*{Examples of retrieval statements}
+
+\begin{framed}
+\textbf{\href{https://software.ecmwf.int/wiki/display/WEBAPI/Python+ERA-interim+examples}{ERA-interim:} \footnotesize{}}
+\begin{lstlisting}   
+server.retrieve({
+    "stream"    : "oper",
+    "levtype"   : "sfc",
+    "param"     : "165.128/166.128/167.128",
+    "dataset"   : "interim",
+    "step"      : "0",
+    "grid"      : "0.75/0.75",
+    "time"      : "00/06/12/18",
+    "date"      : "2014-07-01/to/2014-07-31",
+    "type"      : "an",
+    "class"     : "ei",
+    "target"    : "interim_2014-07-01to2014-07-31_00061218.grib"
+})
+\end{lstlisting}
+\end{framed} % ERA-interim
+
+\begin{framed}
+\textbf{\href{https://software.ecmwf.int/wiki/display/WEBAPI/Python+TIGGE+examples}{TIGGE:} \footnotesize{2m temperature on 01-Nov-2014, from ECMWF}}
+\begin{lstlisting}
+server.retrieve({
+    "origin"    : "ecmf",
+    "levtype"   : "sfc",
+    "number"    : "1/to/50",							# specify ensemble members
+    "expver"    : "prod",
+    "dataset"   : "tigge",
+    "step"      : "0/6/12/18",
+    "grid"      : "0.5/0.5",
+    "param"     : "167",
+    "time"      : "00/12",
+    "date"      : "2014-11-01",
+    "type"      : "pf",									# perturbed forecast
+    "class"     : "ti",
+    "target"    : "tigge_2014-11-01_0012.grib"
+})
+\end{lstlisting}
+\end{framed} % TIGGE
+
+
+\begin{framed} % S2S
+\textbf{\href{https://software.ecmwf.int/wiki/display/WEBAPI/Python+S2S+examples}{S2S:} \footnotesize{1 param (10m U wind) for all time steps, used to calibrate the 14-May-2015 real-time forecast}}
+\begin{lstlisting}
+server.retrieve({
+    "class": "s2",
+    "dataset": "s2s",
+    "hdate": "2014-05-14",
+    "date": "2015-05-14",
+    "expver": "prod",
+    "levtype": "sfc",
+    "origin": "ecmf",
+    "param": "165",
+    "step": "0/to/1104/by/24",							# 46-day-ahead forecast
+    "stream": "enfh",
+    "target": "CHANGEME",
+    "time": "00",
+    "type": "cf",										# control forecast
+})
+\end{lstlisting}
+\end{framed}
+
+
+\end{document}

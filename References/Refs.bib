@@ -2,6 +2,21 @@
 % Encoding: UTF-8
 
 
+@Article{Bauer2015,
+  Title                    = {The quiet revolution of numerical weather prediction},
+  Author                   = {Bauer, Peter and Thorpe, Alan and Brunet, Gilbert},
+  Journal                  = {Nature},
+  Year                     = {2015},
+  Number                   = {7567},
+  Pages                    = {47--55},
+  Volume                   = {525},
+
+  Owner                    = {clair},
+  Publisher                = {Nature Publishing Group},
+  Source                   = {Recommended by Chris Brierley},
+  Timestamp                = {2017.02.22}
+}
+
 @Article{Bayarri2004,
   Title                    = {The interplay of Bayesian and frequentist analysis},
   Author                   = {Bayarri, M J{\'e}sus and Berger, James O},
@@ -96,7 +111,7 @@
   Timestamp                = {2016.12.02}
 }
 
-@Article{brocker2008ensemble,
+@Article{Broecker2008,
   Title                    = {From ensemble forecasts to predictive distribution functions},
   Author                   = {Br{\"o}cker, Jochen and Smith, Leonard A},
   Journal                  = {Tellus A},
@@ -261,13 +276,33 @@
   Pages                    = {405--422},
   Volume                   = {59},
 
-  Abstract                 = {Empirical Bayesian approach to combining multiple forecasts},
+  __markedentry            = {[clair:]},
+  Abstract                 = {Empirical Bayesian approach to combining multiple forecasts from a single ensemble.},
+  Application              = {temp},
+  Data                     = {COSMO-LEPS},
+  Keywords                 = {ensemble},
   Model                    = {Bayesian inference},
   Owner                    = {clair},
-  Priority                 = {prio2},
   Publisher                = {Wiley Online Library},
+  Purpose                  = {calibration, bias correction},
+  Review                   = {Good overview of previous techniques. Some useful plots that could maybe be snaffled (especially in displaying shapes of posterior parameters)
+
+Hierarchical model is aimed at dressing members of a single ensemble (eg. ECMWF), rather than forming a multi-ensemble model. So not really relevant here. Maybe include a mention of this & Roulston in literature review.
+
+Notes that forecast calibration is essentially a by-product of the process - and, importantly, does not require any tuning.
+
+Exploratory plots are given, explaining rationale behind model construction. 
+ - again observes consistent (here, positive) bias, suggesting a need for site-specific correction (eg. site-specific regression intercepts)
+ - observes linear relationship, with constant slope, between forecast and observation
+ - approximately constant variance obsered from boxplots (homoscedasticity across all sites)
+
+Also settles on Gaussian distribution for obs | forecast & parameters, with expectation governed by linear regression and common error variance. (common slope, station-specific intercepts)
+Extra hierarchical level for station-specific intercepts, Gaussian given mean intercept & common variance.
+Vague priors on mean intercept, intercept variance, common slope, common variance. 
+
+Models were fitted to a moving window of 30 days (no sensitiviity analysis) and compared to best model dressing.},
   Source                   = {Marty2015},
-  Status                   = {unread},
+  Status                   = {read},
   Timestamp                = {2016.10.31}
 }
 
@@ -283,6 +318,23 @@
   Publisher                = {JSTOR},
   Status                   = {unread},
   Timestamp                = {2016.10.04}
+}
+
+@Article{Elmore2005,
+  Title                    = {Alternatives to the chi-square test for evaluating rank histograms from ensemble forecasts},
+  Author                   = {Elmore, Kimberly L},
+  Journal                  = {Weather and forecasting},
+  Year                     = {2005},
+  Number                   = {5},
+  Pages                    = {789--795},
+  Volume                   = {20},
+
+  Abstract                 = {Assessing non-uniformity of rank histogram},
+  Owner                    = {clair},
+  Purpose                  = {metric},
+  Source                   = {DiNarzo2010},
+  Status                   = {unread},
+  Timestamp                = {2017.02.21}
 }
 
 @Article{Eskridge1997,
@@ -632,6 +684,7 @@ Metrics: verification rank histogram; probability integral transform (PIT) histo
   Owner                    = {clair},
   Purpose                  = {calibration},
   Source                   = {GS ecmwf reforecast calibration},
+  Status                   = {unread},
   Timestamp                = {2016.12.12}
 }
 
@@ -784,6 +837,23 @@ Adaptive weights allows for more accurate forecasting of typhoon location than a
   Timestamp                = {2016.12.02}
 }
 
+@Article{Jolliffe2008,
+  Title                    = {Evaluating rank histograms using decompositions of the chi-square test statistic},
+  Author                   = {Jolliffe, Ian T and Primo, Cristina},
+  Journal                  = {Monthly Weather Review},
+  Year                     = {2008},
+  Number                   = {6},
+  Pages                    = {2133--2139},
+  Volume                   = {136},
+
+  Abstract                 = {Evaluation of non-uniformity of verification rank histogram},
+  Owner                    = {clair},
+  Purpose                  = {metric},
+  Source                   = {DiNarzo2010},
+  Status                   = {unread},
+  Timestamp                = {2017.02.21}
+}
+
 @Article{Keune2014,
   Title                    = {Multivariate probabilistic analysis and predictability of medium-range ensemble weather forecasts},
   Author                   = {Keune, Jessica and Ohlwein, Christian and Hense, Andreas},
@@ -856,8 +926,9 @@ Adaptive weights allows for more accurate forecasting of typhoon location than a
   Year                     = {2008},
   Volume                   = {4},
 
+  __markedentry            = {[clair:2]},
   Abstract                 = {Bayesian Processor of Ensemble (BPO)},
-  Model                    = {Bayesian},
+  Model                    = {Bayesian, Copula},
   Owner                    = {clair},
   Source                   = {Marty2015},
   Status                   = {unread},
@@ -875,6 +946,19 @@ Adaptive weights allows for more accurate forecasting of typhoon location than a
   Source                   = {Marty2015},
   Status                   = {unread},
   Timestamp                = {2016.10.31}
+}
+
+@InProceedings{Krzysztofowicz2004a,
+  Title                    = {Bayesian Processor of Output: a new technique for probabilistic weather forecasting},
+  Author                   = {Krzysztofowicz, Roman},
+  Booktitle                = {17th Conference on Probability and Statistics in the Atmospheric Sciences},
+  Year                     = {2004},
+  Volume                   = {4},
+
+  __markedentry            = {[clair:2]},
+  Abstract                 = {Other Bayesian approaches},
+  Owner                    = {clair},
+  Timestamp                = {2017.01.20}
 }
 
 @Article{Kwasniok2013,
@@ -1152,6 +1236,7 @@ Adaptive weights allows for more accurate forecasting of typhoon location than a
   Owner                    = {clair},
   Publisher                = {Sage Publications},
   Source                   = {Raftery2005},
+  Status                   = {unread},
   Timestamp                = {2016.12.06}
 }
 
@@ -1254,6 +1339,30 @@ Adaptive weights allows for more accurate forecasting of typhoon location than a
   Publisher                = {Taylor \& Francis Group},
   Status                   = {unread},
   Timestamp                = {2016.10.03}
+}
+
+@Article{Roulston2003,
+  Title                    = {Combining dynamical and statistical ensembles},
+  Author                   = {Roulston, MS and Smith, Leonard A},
+  Journal                  = {Tellus A},
+  Year                     = {2003},
+  Number                   = {1},
+  Pages                    = {16--30},
+  Volume                   = {55},
+
+  Abstract                 = {'best member dressing' approach to selecting single best forecast from an ensemble, rather than averaging.},
+  Application              = {temp},
+  Data                     = {ECMWF},
+  Model                    = {Analogues},
+  Owner                    = {clair},
+  Publisher                = {Wiley Online Library},
+  Purpose                  = {calibration},
+  Review                   = {Uses 'best member dressing' approach to generate synthetic ensembles of same size, allowing better comparison between models. Single-model approach only.
+
+Good explanation of ignorance score.},
+  Source                   = {DiNarzo2010},
+  Status                   = {read},
+  Timestamp                = {2017.02.21}
 }
 
 @Article{Sansom2013,
@@ -1412,9 +1521,10 @@ Mentions splines with reference to underlying climatology - links to Kalman Filt
   Timestamp                = {2016.10.20}
 }
 
-@Article{Tion,
+@Article{Tion2014,
   Title                    = {Seamless Prediction of the Earth System: From Minutes to Months},
   Author                   = {Tion, O and Tes, Tom},
+  Year                     = {2014},
 
   Owner                    = {clair},
   Status                   = {unread},
@@ -1473,6 +1583,7 @@ Mentions splines with reference to underlying climatology - links to Kalman Filt
   Owner                    = {clair},
   Publisher                = {Springer},
   Source                   = {Fraley2010},
+  Status                   = {unread},
   Timestamp                = {2016.12.06}
 }
 
@@ -1488,6 +1599,7 @@ Mentions splines with reference to underlying climatology - links to Kalman Filt
   Abstract                 = {Cited by Hagedorn2012. Investigation of whether multi-model approach is really useful, at a seasonal timescale.},
   Model                    = {Multi-model},
   Owner                    = {clair},
+  Priority                 = {prio2},
   Publisher                = {Wiley Online Library},
   Purpose                  = {bias correction},
   Status                   = {unread},
@@ -1591,6 +1703,7 @@ There remain some cases of MCGE bias, beccause all models shared the same bias.}
   Owner                    = {clair},
   Publisher                = {Springer},
   Source                   = {GS: Multivariate CRPS},
+  Status                   = {unread},
   Timestamp                = {2016.12.02}
 }
 
