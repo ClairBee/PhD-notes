@@ -33,7 +33,7 @@
 \begin{document}
 
 
-\section*{Getting started}
+\section{Quick guide to downloading from ECMWF}
 
 See the \href{https://software.ecmwf.int/wiki/display/WEBAPI/Access+ECMWF+Public+Datasets}{ECMWF guide to accessing public datasets} for detailed  instructions.
 
@@ -60,6 +60,8 @@ See the \href{https://software.ecmwf.int/wiki/display/WEBAPI/Access+ECMWF+Public
 
 Publicly available datasets are listed \href{http://apps.ecmwf.int/datasets/}{here}. Each has a GUI to select and download subsets of the available data (in .GRIB or .NETCDF format), or produce a python script for efficient batch download (`view the MARS request').
 
+Requests should be organised by date and time for maximum efficiency, picking up multiple parameters and steps simulataneously.
+ 
 Your current job list can be viewed at \url{http://apps.ecmwf.int/webmars/joblist/}
 
 MARS server activity (including the time taken to process other users' requests) can be viewed at \url{http://apps.ecmwf.int/mars-activity/} - unfortunately, this won't necessarily help to gauge how long your request is likely to spend in a queue, only how long it will take to process.\\[10pt]
@@ -86,10 +88,8 @@ UKMO & egrr &11 &4 & UK Met Office\\
 
 \end{framed}
 
-
 \newpage
-
-\section*{Batch data retrieval using Python}
+\subsection{Batch data retrieval using Python}
 Some commands and parameters can only be accessed using batch processing, so writing a Python script directly may be necessary. A guide to all keywords can be found \href{https://software.ecmwf.int/wiki/display/UDOC/Identification+keywords#Identificationkeywords-class}{here}\\[7pt]
 
 \begin{framed}
@@ -185,7 +185,7 @@ for s, e in zip(start_date, end_date):									# iterate over range
 
 \newpage
 
-\section*{Examples of retrieval statements}
+\subsection{Examples of retrieval statements}
 
 \begin{framed}
 \textbf{\href{https://software.ecmwf.int/wiki/display/WEBAPI/Python+ERA-interim+examples}{ERA-interim:} \footnotesize{}}
@@ -248,6 +248,54 @@ server.retrieve({
 })
 \end{lstlisting}
 \end{framed}
+
+\newpage
+\section{Reading downloaded .grib data into R}
+
+\subsection{Installing the \texttt{gribr} package}
+
+A user has very helpfully produced and shared an R package to import .grib files into R: \url{https://github.com/nawendt/gribr}\\[10pt]
+
+\textbf{First, install ecCodes.} Download \href{https://software.ecmwf.int/wiki/display/ECC/Releases}{the latest tar.gz file}, then install following the directions given on the website. 
+
+\textit{In Ubuntu, setup should be more straightforward if ecCodes is installed to a folder within the default system file path. This may differ among versions and installations, but seems to default to \texttt{/usr/local/lib}.\\
+\texttt{gedit /etc/ld.so.conf.d/libc.conf} on the command line (or some other text editor in place of \texttt{gedit}) should display the default path. }
+
+\resizebox{0.95\textwidth}{!}{
+	\begin{tabular}{>{\ttfamily}ll}
+		\textit{sudo apt install cmake} & \textit{Install \texttt{cmake}, if not already installed}  \\
+		tar -xzf  eccodes-2.2.0-Source.tar.gz & Unpack tarball  \\
+		mkdir build; cd build & Create \& move to clean build directory  \\
+		cmake  ../eccodes-2.2.0-Source -DCMAKE\_INSTALL\_PREFIX=/usr/local/lib/eccodes/ & Set source \& target directories  \\
+		make & Compile  \\
+		ctest & Test  \\
+		sudo make install & Install to specified directory  \\
+	\end{tabular}
+}\\[10pt]
+
+\textbf{Then install the \texttt{gribr} package} directly from GitHub. Despite installing a folder on the \texttt{ld} path, I needed to create an \texttt{.Renviron} file in \texttt{/home}, containing the following:
+\begin{verbatim}
+ECCODES_LIBS=/usr/local/lib/eccodes/lib
+ECCODES_CPPFLAGS=/usr/local/lib/eccodes/include
+LD_LIBRARY_PATH=<current library path>:/usr/local/lib/eccodes/lib
+\end{verbatim}
+
+\vspace{12pt}
+
+To find \texttt{<current library path>}, in RStudio run \texttt{Sys.getenv("LD\_LIBRARY\_PATH")}, then copy and paste the string into the \texttt{.Renviron} file. 
+
+You will need to close and reopen RStudio for the new environment variables to be loaded on startup; it should now be possible to install \texttt{gribr} and its dependencies:
+\begin{verbatim}
+install.packages("proj4")
+devtools::install_github("nawendt/gribr", 
+                         args = "--configure-args='ECCODES_LIBS=-L/usr/local/lib/eccodes/lib
+                                                   ECCODES_CPPFLAGS=-I/usr/local/lib/eccodes/include'")
+\end{verbatim}
+
+
+\newpage
+
+
 
 
 \end{document}
