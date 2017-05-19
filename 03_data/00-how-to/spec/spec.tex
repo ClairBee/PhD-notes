@@ -1,0 +1,60 @@
+\documentclass[10pt,fleqn]{article}
+\usepackage{/home/clair/Documents/docstyle}
+
+\usepackage{array}
+\usepackage{soul}
+
+\newcommand{\gr}[1]{{\sethlcolor{Orange}\hl{#1}}}
+
+% If including a bibliography, configure quick build > PdfLaTeX + Bib(La)TeX + PdfLaTeX (x2) + view PDF
+
+%----------------------------------------------------------------------
+% reformat section headers to be smaller \& left-aligned
+\titleformat{\section}{\normalfont\bfseries}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\bfseries}{\thesubsection}{1em}{}
+	
+%----------------------------------------------------------------------
+
+%\addtolength{\topmargin}{-0.5cm}
+%\addtolength{\textheight}{1cm}
+
+%======================================================================
+
+\begin{document}
+
+\section{TIGGE data availability}
+
+\subsection{Perturbed ensemble forecasts}
+
+\begin{tabular}{>{\bfseries}lcccc}
+& \multicolumn{2}{c}{\textbf{Dates}} & \textbf{Max look-ahead} & \textbf{Ensemble}\\
+BoM 	& Sep 2007 					& \gr{Jul 2010} 		& \gr{10} 	& 20	\\
+\hl{CMA} 	& May 2007 					& May 2017 		& 15 	& 14	\\
+\hl{CPTEC}	& Feb 2008 					& May 2017 		& 15 	& 14	\\
+\hl{ECCC} 	& Oct 2007 					& Jan 2017 		& 16 	& 20	\\
+\hl{ECMWF} 	& Oct 2006 					& May 2017 		& 15 	& 50	\\
+JMA 	& Oct 2006\footnotemark[1] 	& May 2017 		& \gr{11} 	& 26	\\
+KMA 	& Dec 2007 					& May 2017 		& \gr{10} 	& 23	\\
+\hl{NCEP} 	& Mar 2007 					& Apr 2017 		& 16 	& 20	\\
+\hl{UKMO} 	& Oct 2006 					& May 2017 		& 15 	& 11	\\
+\end{tabular}
+
+\begin{minipage}{0.95\textwidth}
+\footnotetext[1]{Midday only - midnight added forecasts from Feb 2014}
+
+\footnotesize{Meteo-France are excluded because they only produce forecasts at 06:00 and 18:00, up to 3 days ahead. \\ 
+All other ensembles provide midnight \& midday forecasts, except where noted.}
+\end{minipage}
+
+
+\subsection{Parameters}
+
+\begin{description}
+
+
+\item[Available as an instantaneous \textit{(step 0)} or aggregated forecast:] 2m temperature, 10m U \& V wind component, mean sea level pressure, total cloud cover
+
+\item[Only available as aggregated forecast:] Total precipitation
+\end{description}
+
+\end{document}

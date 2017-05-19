@@ -83,7 +83,7 @@ HMCR & rums &-&20 & Hydrometeorological Centre of Russia\\
 JMA & rjtd &26 &25 & Japan Meteorological Agency \\
 KMA & rksl & 23 & 4 & Korea Meteorological Administration\\
 NCEP & kwbc &20 &16 & National Centers for Environmental Prediction (US) \\
-UKMO & egrr &11 &4 & UK Met Office\\
+UKMO & egrr &23 &4 & UK Met Office\\
 \end{tabular}
 
 \end{framed}
@@ -250,47 +250,100 @@ server.retrieve({
 \end{framed}
 
 \newpage
-\section{Reading downloaded .grib data into R}
+\section{Reading downloaded data into R}
 
-\subsection{Installing the \texttt{gribr} package}
+ECMWF data is stored in .\texttt{grib} format, which is very compact, but which does not play nicely in R. The \href{https://software.ecmwf.int/wiki/display/ECC/ecCodes+Home}
+{\texttt{eccodes} package} provides a command-line tool to convert directly from grib to netcdf format; this is not currently available in any Linux repositories, so needs to be installed directly from the source files.
 
-A user has very helpfully produced and shared an R package to import .grib files into R: \url{https://github.com/nawendt/gribr}\\[10pt]
+\textit{It is possible to download data from ECMWF in netcdf format; however, if multiple timesteps are required (as they usually are with forecast data), the grib-to-netcdf conversion performed during the download will fail, so it's easier just to download everything in .\texttt{grib} format and convert manually.}
 
-\textbf{First, install ecCodes.} Download \href{https://software.ecmwf.int/wiki/display/ECC/Releases}{the latest tar.gz file}, then install following the directions given on the website. 
+\subsection{Install \texttt{eccodes} to get conversion tools}
+Download \href{https://software.ecmwf.int/wiki/display/ECC/Releases}{the latest tar.gz file}, then install following the directions given on the website. From the command line,
 
-\textit{In Ubuntu, setup should be more straightforward if ecCodes is installed to a folder within the default system file path. This may differ among versions and installations, but seems to default to \texttt{/usr/local/lib}.\\
-\texttt{gedit /etc/ld.so.conf.d/libc.conf} on the command line (or some other text editor in place of \texttt{gedit}) should display the default path. }
-
-\resizebox{0.95\textwidth}{!}{
+\begin{footnotesize}
 	\begin{tabular}{>{\ttfamily}ll}
 		\textit{sudo apt install cmake} & \textit{Install \texttt{cmake}, if not already installed}  \\
 		tar -xzf  eccodes-2.2.0-Source.tar.gz & Unpack tarball  \\
 		mkdir build; cd build & Create \& move to clean build directory  \\
-		cmake  ../eccodes-2.2.0-Source -DCMAKE\_INSTALL\_PREFIX=/usr/local/lib/eccodes/ & Set source \& target directories  \\
+		cmake & (all one command)\\
+		$\-\ $ ../eccodes-2.2.0-Source & $\-\ $ Path to unpacked tarball \\
+		$\-\ $ -DCMAKE\_INSTALL\_PREFIX=/usr/local  & $\-\ $ Set target directory\\
+		$\-\ $ -DENABLE\_NETCDF=ON & $\-\ $ Enable \texttt{grib\_to\_netcdf} conversion\\
+		$\-\ $ -DENABLE\_PYTHON=ON & $\-\ $ Offer Python interface \\
+		
 		make & Compile  \\
 		ctest & Test  \\
 		sudo make install & Install to specified directory  \\
 	\end{tabular}
-}\\[10pt]
+\end{footnotesize}
 
-\textbf{Then install the \texttt{gribr} package} directly from GitHub. Despite installing a folder on the \texttt{ld} path, I needed to create an \texttt{.Renviron} file in \texttt{/home}, containing the following:
-\begin{verbatim}
-ECCODES_LIBS=/usr/local/lib/eccodes/lib
-ECCODES_CPPFLAGS=/usr/local/lib/eccodes/include
-LD_LIBRARY_PATH=<current library path>:/usr/local/lib/eccodes/lib
-\end{verbatim}
 
-\vspace{12pt}
 
-To find \texttt{<current library path>}, in RStudio run \texttt{Sys.getenv("LD\_LIBRARY\_PATH")}, then copy and paste the string into the \texttt{.Renviron} file. 
+\subsection{Convert downloaded \texttt{.grib} data to \texttt{.nc} format}
 
-You will need to close and reopen RStudio for the new environment variables to be loaded on startup; it should now be possible to install \texttt{gribr} and its dependencies:
-\begin{verbatim}
-install.packages("proj4")
-devtools::install_github("nawendt/gribr", 
-                         args = "--configure-args='ECCODES_LIBS=-L/usr/local/lib/eccodes/lib
-                                                   ECCODES_CPPFLAGS=-I/usr/local/lib/eccodes/include'")
-\end{verbatim}
+Conversion from \texttt{.grib} to \texttt{.nc} is now quite straightforward. On the command line, run
+
+\texttt{grib\_to\_netcdf <input-file>.grib -o <output-file>.nc -T}
+
+Option \texttt{-T} is critical when downloading forecast data at multiple timesteps - this will cause the converter to treat the timesteps as a dimension (which it is), not as a variable (which causes the conversion to find multiple records for each dimension, and to crash)
+
+\subsection{Import netcdf data into R}
+
+A handy reference to importing netcdf data in R can be found at \url{http://geog.uoregon.edu/bartlein/courses/geog607/Rmd/netCDF_01.htm}. In short:
+
+\begin{lstlisting}[language=R]
+ncin <- nc_open("<converted-data>.nc")			# open the file
+
+names(ncin$var); names(ncin$dim)				# list variables and dimensions
+[1] "u10" "v10" "t2m"
+[1] "longitude" "latitude"  "number"    "step"      "time"      "date"
+
+# get dimensions
+lon <- ncvar_get(ncin, "longitude")         
+lat <- ncvar_get(ncin, "latitude")
+em <- ncvar_get(ncin, "number")                                         # ensemble members
+lt <- ncvar_get(ncin, "step")                                           # time steps (look-ahead time)
+f.time <- ncvar_get(ncin, "time")                                       # times that forecast was made
+f.date <- as.Date(ncvar_get(ncin, "date"), origin = "1900-01-01")       # dates that forecast was made
+
+# extract any variable as an array with the given dimensions
+temp <- ncvar_get(ncin, "t2m")
+
+nc_close(ncin)									# close the file (otherwise it will stay open in your workspace) 
+\end{lstlisting}
+
+
+%\subsection{Installing the \texttt{gribr} package}
+%
+%A user has very helpfully produced and shared an R package to import .grib files into R: \url{https://github.com/nawendt/gribr}\\[10pt]
+%
+%\textbf{First, install ecCodes.} 
+%
+%\textit{In Ubuntu, setup should be more straightforward if ecCodes is installed to a folder within the default system file path. This may differ among versions and installations, but seems to default to \texttt{/usr/local/lib}.\\
+%\texttt{gedit /etc/ld.so.conf.d/libc.conf} on the command line (or some other text editor in place of \texttt{gedit}) should display the default path. }
+%
+%
+%
+%Set source \& target directories  \\
+%
+%\textbf{Then install the \texttt{gribr} package} directly from GitHub. Despite installing a folder on the \texttt{ld} path, I needed to create an \texttt{.Renviron} file in \texttt{/home}, containing the following:
+%\begin{verbatim}
+%ECCODES_LIBS=/usr/local/lib/eccodes/lib
+%ECCODES_CPPFLAGS=/usr/local/lib/eccodes/include
+%LD_LIBRARY_PATH=<current library path>:/usr/local/lib/eccodes/lib
+%\end{verbatim}
+%
+%\vspace{12pt}
+%
+%To find \texttt{<current library path>}, in RStudio run \texttt{Sys.getenv("LD\_LIBRARY\_PATH")}, then copy and paste the string into the \texttt{.Renviron} file. 
+%
+%You will need to close and reopen RStudio for the new environment variables to be loaded on startup; it should now be possible to install \texttt{gribr} and its dependencies:
+%\begin{verbatim}
+%install.packages("proj4")
+%devtools::install_github("nawendt/gribr", 
+%                         args = "--configure-args='ECCODES_LIBS=-L/usr/local/lib/eccodes/lib
+%                                                   ECCODES_CPPFLAGS=-I/usr/local/lib/eccodes/include'")
+%\end{verbatim}
 
 
 \newpage
