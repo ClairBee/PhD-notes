@@ -59,7 +59,7 @@ ei.mslp[2,1,1,1]
 kf.mslp[2,1,1,1] * 100
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# ECMWF MSLP                                                                                        ####
+# ECMWF MSLP : MATCHED                                                                              ####
 
 # load data from Kate
 {
@@ -70,6 +70,21 @@ kf.mslp[2,1,1,1] * 100
     load("./99-org-data/kf-ecmwf/ECMWF_europe_leadtime.rda")
 }
 
+nc.inspect("./99-org-data/cb-era-int/ecmwf-cf-temp-mslp.nc")
+
+cb.msl <- nc.array("./99-org-data/cb-era-int/ecmwf-cf-temp-mslp.nc")["msl",,,,,]
+
+dt <- "20090101"
+k.ind <- which(apply(model_time, 1:2, function(mt) gsub("-","",as.Date(mt/24, origin = "1800-01-01"))) == dt, arr.ind = T)
+
+cb.sl <- cb.msl[lon(cb.msl) %in% lon, lat(cb.msl) %in% lat,,"12",dt] 
+kf.sl <- apply(model_var[lon %in% lon(cb.sl), lat %in% lat(cb.sl), , ,], 1:3, "[", k.ind)
+
+image(lon(cb.sl), lat(cb.sl), cb.sl[,,1])
+image(lon(cb.sl), lat(cb.sl), kf.sl[,,1])
+
+plot(cb.sl, kf.sl, pch = 20)
+# yup. Rounding/unpacking again.
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # ERA-interim temp at 850mb : MATCHED                                                               ####
@@ -207,24 +222,121 @@ plot(cb.gp[,,32], k.gp, pch = 20)
 range(cb.gp[,,32] - (k.gp * 100))
 # error < 0.5 in 1000. Probably just rounding somewhere.
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-# ECMWF north-south midday temperatures                                                             ####
+########################################################################################################
+# ERA-int north-south temperatures (step 0)                                                         ####
 
-# load original data
-load("../02_papers/01-winter-temps/code/mmeBayes/data/ecmwf.rda")
-
-# filter to select obly January 2009 (according to current labelling)
-load("../02_papers/01-winter-temps/code/mmeBayes/data/timestamps.rda")
-ecmwf <- ecmwf[1:2,16:105,"08",,-1][,timestamps[,2] %in% dimnames(cb.dat)$date,,]
-
-cb.dat <- nc.array("./01-raw-data/zz_scratch/ecmwf/ec01.nc")[,,,,1:15,] - 273.14
-
-# try aggregating without land-sea mask
+# load data from Kate
 {
-    ns.all <- abind("temp.n" = apply(cb.dat[,lat(cb.dat) > 54.4,,,], 5:3, mean),
-                    "temp.s" = apply(cb.dat[,lat(cb.dat) < 54.4,,,], 5:3, mean), along = 0)
+    load("./99-org-data/kf-era-int/ERAint_temp2m_36yr_north24hrave.rda")
+    load("./99-org-data/kf-era-int/ERAint_small_lon.rda")
+    load("./99-org-data/kf-era-int/ERAint_small_lat.rda")
+    load("./99-org-data/kf-era-int/ERAint_small_starttime.rda")
 }
 
+# load new download
+{
+    ncin <- nc_open("./99-org-data/cb-era-int/ei-temps-all-times.nc")
+    # names(ncin$dim); names(ncin$var)
+    
+    t2m <- ncvar_get(ncin, "t2m")
+    dimnames(t2m) <- sapply(names(ncin$dim), function(dd) ncvar_get(ncin, dd))
+    
+    nc_close(ncin); remove(ncin)
+    # nothing filtered or reordered yet
+    
+    t2m <- t2m[,21:1,]
+    
+    times <- as.numeric(dimnames(t2m)$time) %% 24
+}
+
+# looking at dims of model_time and model_var, suspect that each 'mean' is average of t+[0:3]
+mean.t2m <- abind(invisible(sapply(1:718, function(dd) {
+   apply(t2m[,,dd+(0:3)], 1:2, mean)
+}, simplify = F)), rev.along = 0)
+dimnames(mean.t2m)[[3]] <- sapply(as.numeric(dimnames(t2m)$time), function(dt) gsub("-", "", as.Date(dt/24, origin = "1900-01-01")))[1:718]
+names(dimnames(mean.t2m)) <- c("longitude", "latitude", "date")
+#mean.t2m <- mean.t2m[,,times[1:718] == 12]  # single time only
+
+# apply latitude weights to n/s mask
+lat.wt <- cos(lat * pi/180)
+nsm <- ns.mask()
+nsm.n <- sweep(nsm$n, 2, cos(lat(nsm$n)/90 * pi/2), "*")
+nsm.s <- sweep(nsm$s, 2, cos(lat(nsm$s)/90 * pi/2), "*")
+
+mt.n <- sweep(mean.t2m[lon(mean.t2m) %in% lon(nsm$n), lat(mean.t2m) %in% lat(nsm$n),],
+              1:2, nsm$n, "*")
+mt.n <- apply(mt.n, 3, weighted.mean, w = nsm.n, na.rm = T)
+mt.s <- apply(sweep(mean.t2m[lon(mean.t2m) %in% lon(nsm$s), lat(mean.t2m) %in% lat(nsm$s),],
+                    1:2, nsm$s, "*"), 3, mean, na.rm = T)
+mt.s <- apply(mt.s, 3, weighted.mean, w = nsm.s, na.rm = T)
+
+plot(mt.n[361:720], type = "l")
+lines(model_var[,31], col = "red")
+# so close...
+
+load("./99-org-data/kf-era-int/ERAint_temp2m_36yr_south24hrave.rda")
+
+plot(mt.s[1:360], type = "l")
+lines(model_var[,31], col = "red")
+
+names(mt.n)
+
+as.Date(model_time[1,31]/24, origin = "1800-01-01")
+
+t.ext <- sweep(t2m[lon(t2m) %in% lon(nsm$n),lat(t2m) %in% lat(nsm$n),1:4], 1:2, nsm$n, "*")
+as.Date(as.numeric(dimnames(t.ext)$time[1])/24, origin="1900-01-01")
+
+
+image(t.ext[,,1])
+
+# double-check model dates & times align
+model_time[2,31] %% 24
+as.numeric(dimnames(t.ext)$time[2]) %% 24
+
+plot(mt.s[1:360], model_var[,31], pch = 20)
+
+load("./99-org-data/kf-era-int/ERAint_temp2m_36yr_north24hrave.rda")
+plot(mt.n[1:360], model_var[,31], pch = 20)
+
+# what about averaging without first applying the land-sea mask?
+range(mt.s[1:360] - model_var[,31])
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# ERA-int north-south temperatures (step 6 & 0)                                                     ####
+
+# possible that instead of averaging over all reanalyses at step 0,
+# we should average over step 0 and step 6 from midnight and midday?
+
+# load new data
+{
+    grib.convert("./99-org-data/cb-era-int/ei-06-temps")
+    ncin <- nc_open("./99-org-data/cb-era-int/ei-06-temps.nc")
+    t6 <- ncvar_get(ncin, "t2m")
+    dimnames(t6) <- sapply(names(ncin$dim), function(dd) ncvar_get(ncin, dd))
+    nc_close(ncin); remove(ncin)
+}
+
+# load data from Kate
+{
+    load("./99-org-data/kf-era-int/ERAint_temp2m_36yr_north24hrave.rda"); kf.n <- model_var
+    load("./99-org-data/kf-era-int/ERAint_temp2m_36yr_south24hrave.rda"); kf.s <- model_var
+    
+    load("./99-org-data/kf-era-int/ERAint_small_lon.rda")
+    load("./99-org-data/kf-era-int/ERAint_small_lat.rda")
+    load("./99-org-data/kf-era-int/ERAint_small_starttime.rda")
+}
+
+nsm <- ns.mask()
+
+t6.m <- apply(t6, c(1:2,5), mean)           # 24h mean at each gridpoint
+t6.m <- t6.m[lon(t6.m) %in% lon(nsm$n), lat(t6.m) %in% lat(nsm$n),]
+t6m.n <- apply(sweep(t6.m, 1:2, nsm$n, "*"), 3, mean, na.rm = T)
+
+as.Date(model_time[1,31]/24, origin = "1800-01-01")
+as.Date(as.integer(names(t6m.n)[1]), origin = "1900-01-01")
+kfnn <- kf.n[1,1]
+
+# NOPE
 
 ########################################################################################################
 # ERA-interim 24h average temps                                                                     ####
@@ -251,9 +363,9 @@ load("./99-org-data/kf-era-int/ERAint_temp2m_36yr_north24hrave.rda")
 
 # load new data
 {
-    grib.convert("./99-org-data/cb-era-int/ecmwf-2010-cf-mean2t24.grib")
+    grib.convert("./99-org-data/cb-era-int/ECMWF-cf-alltemps.grib")
     
-    nc.inspect("./99-org-data/cb-era-int/ecmwf-2010-cf-mean2t24.nc")
+    nc.inspect("./99-org-data/cb-era-int/ECMWF-cf-alltemps.nc")
     mtmp <- nc.array("./99-org-data/cb-era-int/ecmwf-2010-cf-mean2t24.nc")
     
     ncin <- nc_open("./99-org-data/cb-era-int/ecmwf-2010-cf-mean2t24.nc")

@@ -58,18 +58,66 @@ See the \href{https://software.ecmwf.int/wiki/display/WEBAPI/Access+ECMWF+Public
 \vspace{10pt}
 \textbf{Downloading data}:
 
-Publicly available datasets are listed \href{http://apps.ecmwf.int/datasets/}{here}. Each has a GUI to select and download subsets of the available data (in .GRIB or .NETCDF format), or produce a python script for efficient batch download (`view the MARS request').
+Publicly available datasets are listed \href{http://apps.ecmwf.int/datasets/}{here}. Each has a GUI to select and download subsets of the available data (in .GRIB or .NETCDF format), or produce a python script for efficient batch download (`view the MARS request'). \textit{It is possible to download data from ECMWF in netcdf format; however, if multiple timesteps are required (as they usually are with forecast data), the grib-to-netcdf conversion performed during the download will fail, so it's easier just to download everything in .\texttt{grib} format and convert manually.}
 
-Requests should be organised by date and time for maximum efficiency, picking up multiple parameters and steps simulataneously.
+Requests should be organised by date and time for maximum efficiency, picking up multiple parameters and steps simultaneously. Tempting though it may be to create a single download for all dates of interest, it will be much quicker to download a single day's forecasts at a time - requests are queued according to the number of tapes they need to access, so a single download for 4 months' data may have to wait for several hours before processing even begins, while 120 single-day forecasts covering the same period might be retrieved and downloaded within 15 minutes.
  
 Your current job list can be viewed at \url{http://apps.ecmwf.int/webmars/joblist/}
 
-MARS server activity (including the time taken to process other users' requests) can be viewed at \url{http://apps.ecmwf.int/mars-activity/} - unfortunately, this won't necessarily help to gauge how long your request is likely to spend in a queue, only how long it will take to process.\\[10pt]
+MARS server activity (including the time taken to process other users' requests) can be viewed at \url{http://apps.ecmwf.int/mars-activity/} - unfortunately, this won't necessarily help to gauge how long your request is likely to spend in a queue, only how long it will take to process. The ECMWF efficiency website mentions that maintenance is usually performed on a Wednesday, which may affect the performance of the API server.
 
-\begin{framed}
+\newpage
 
-\flushleft{\textbf{Size of available ensemble forecasts in TIGGE and S2S repositories}} \\[10pt]
-% origin
+\subsection{Batch retrieval using Python and R}
+Create a Python script to download a single day's ensemble forecast from the TIGGE archive:
+
+\begin{lstlisting}
+#!/usr/bin/env python
+	
+import sys									# import 'sys' package to allow arguments to be passed from command line
+from ecmwfapi import ECMWFDataServer
+server = ECMWFDataServer()
+
+dt = sys.argv[1]							# assign 'date' argument from command line
+
+server.retrieve({
+	"class"		: "ti",
+	"dataset"	: "tigge",
+	"date"		: "{0}".format(dt),												# 'date' variable 
+	"expver"	: "prod",
+	"grid"		: "1/1",														# resolution: 1 degree
+	"area"		: "60/-6/50/2",													# limited to area surrounding UK
+	"levtype"	: "sfc",
+	"origin"	: "ecmf/egrr/kwbc/babj/cwao",									# list all ensembles
+	"number"	: "1/to/50",													# capture all membbers of largest ensemble
+	"param"		: "167",														# 167 = 2m temperature
+	"step"		: "0/24/48/72/96/120/144/168/192/216/240/264/288/312/336/360",
+	"time"		: "00:00:00/12:00:00",
+	"type"		: "pf",
+	"target"	: "./tigge/temp-pf-{0}.grib".format(dt,			# save file locally for greater efficiency
+})
+\end{lstlisting}
+
+
+Now use R to iterate over all variables of interest, calling the Python script for each. The command \texttt{system} is the equivalent to running the first argument from the command line; the second argument, \texttt{wait = F}, submits all of the requests simultaneously, rather than waiting for each request to be completed before the next is downloaded.
+
+\begin{lstlisting}[language = R]
+require(rPython}
+	          
+invisible(sapply(c(2007:2016), function(yr) {											# iterate over all years
+	dt.rng <- sapply(as.Date(paste0(yr, "-11-01")):as.Date(paste0(yr+1, "-02-28")),
+                     function(dd) toString(as.Date(dd, origin = "1970-01-01")))
+	invisible(sapply(dt.rng, function(dt) {												# iterate over all dates
+	          system(paste('python tigge-t2m-24h-1d-request.py', dt), wait = F)
+	}))
+}))
+\end{lstlisting}
+
+\newpage
+\subsection{Some useful retrieval codes}
+
+\subsubsection{Size of available ensemble forecasts in TIGGE and S2S repositories}
+
 \begin{tabular}{c>{\ttfamily}cccl}
 & \textbf{origin}& \textbf{\href{https://software.ecmwf.int/wiki/display/TIGGE/Models}{TIGGE}} & \textbf{\href{https://software.ecmwf.int/wiki/display/S2S/Models}{S2S}} & \\
 BoM & ammc &20 &$3\times11$ & Bureau of Meteorology (Aus) \\
@@ -86,7 +134,153 @@ NCEP & kwbc &20 &16 & National Centers for Environmental Prediction (US) \\
 UKMO & egrr &23 &4 & UK Met Office\\
 \end{tabular}
 
-\end{framed}
+
+\subsubsection{\href{http://apps.ecmwf.int/codes/grib/param-db/}{Parameters}}
+\begin{tabular}{>{\ttfamily}c>{\ttfamily}c>{\ttfamily}cll}
+\textbf{ERA-Interim} & \textbf{TIGGE} & \textbf{S2S}&\\
+167.128 & 167 & &2m temperature & k\\
+- & 172 && land-sea mask & (0-1) \\
+228.128 &&& Total precipitation & (m) \\
+165.128 &&& 10m U-component of wind & ms$^{-1}$\\
+166.128 &&& 10m V-component of wind & ms$^{-1}$\\
+151.128 &&& Mean sea level pressure & Pa\\
+164.128 &&& Total cloud cover & (0-1) \\
+\end{tabular}
+
+
+\subsubsection{\href{http://apps.ecmwf.int/codes/grib/format/mars/type/}{Data type}}
+% type
+\begin{tabular}{>{\ttfamily}c>{\ttfamily}c>{\ttfamily}cl}
+\textbf{ERA-Interim} & \textbf{TIGGE} & \textbf{S2S}&\\
+an &    &    & Analysis \\
+   & cf &    & Control forecast\\
+   &    & cl & Climatology \\
+   & pf &    & Perturbed forecast\\
+   & em &    & Ensemble mean\\
+   & es &    & Ensemble SD\\
+\end{tabular}
+
+
+%% class & dataset
+%\begin{tabular}{>{\ttfamily}l>{\ttfamily}l>{\ttfamily}ll}
+%\textbf{\href{http://apps.ecmwf.int/codes/grib/format/mars/class/}{class}} & \textbf{dataset} & \textbf{\href{http://apps.ecmwf.int/codes/grib/format/mars/stream/}{stream}} & \\
+%ei & interim & oper & ERA-interim reanalysis data: atmospheric model \textit{(ie. weather)}\\
+%s2 & s2s & enfh & Subseasonal-to-seasonal data (up to 60 days): ensemble forecast hindcasts\\
+%ti & tigge & enfo & TIGGE medium-range forecasts (up to 14 days): ensemble prediction system\\
+%\end{tabular}
+
+
+%%levtype
+%\begin{tabular}{>{\ttfamily}cl>{\ttfamily}l}
+%\textbf{levtype} & & \textbf{levlist}\\
+%sfc & Surface & NA \\
+%pl & Pressure level (hPA) & 200/250/300/500/700/850/925/1000\\
+%\end{tabular}
+
+
+
+
+\newpage
+\section{Reading downloaded data into R}
+
+ECMWF data is stored in .\texttt{grib} format, which is very compact, but which does not play nicely in R. The \href{https://software.ecmwf.int/wiki/display/ECC/ecCodes+Home}
+{\texttt{eccodes} package} provides a command-line tool to convert directly from grib to netcdf format; this is not currently available in any Linux repositories, so needs to be installed directly from the source files.
+
+
+
+\subsection{Install \texttt{eccodes} to get conversion tools}
+Download \href{https://software.ecmwf.int/wiki/display/ECC/Releases}{the latest tar.gz file}, then install following the directions given on the website. From the command line,
+
+\begin{footnotesize}
+	\begin{tabular}{>{\ttfamily}ll}
+		\textit{sudo apt install cmake} & \textit{Install \texttt{cmake}, if not already installed}  \\
+		tar -xzf  eccodes-2.2.0-Source.tar.gz & Unpack tarball  \\
+		mkdir build; cd build & Create \& move to clean build directory  \\
+		cmake & (all one command)\\
+		$\-\ $ ../eccodes-2.2.0-Source & $\-\ $ Path to unpacked tarball \\
+		$\-\ $ -DCMAKE\_INSTALL\_PREFIX=/usr/local  & $\-\ $ Set target directory\\
+		$\-\ $ -DENABLE\_NETCDF=ON & $\-\ $ Enable \texttt{grib\_to\_netcdf} conversion\\
+		$\-\ $ -DENABLE\_PYTHON=ON & $\-\ $ Offer Python interface \\
+		
+		make & Compile  \\
+		ctest & Test  \\
+		sudo make install & Install to specified directory  \\
+	\end{tabular}
+\end{footnotesize}
+
+
+
+\subsection{Convert downloaded \texttt{.grib} data to \texttt{.nc} format}
+
+Conversion from \texttt{.grib} to \texttt{.nc} is now quite straightforward. On the command line, run
+
+\texttt{grib\_to\_netcdf <input-file>.grib -o <output-file>.nc -T}
+
+Option \texttt{-T} is critical when downloading forecast data at multiple timesteps - this will cause the converter to treat the timesteps as a dimension (which it is), not as a variable (which causes the conversion to find multiple records for each dimension, and to crash)
+
+\subsection{Import netcdf data into R}
+
+A handy reference to importing netcdf data in R can be found at \url{http://geog.uoregon.edu/bartlein/courses/geog607/Rmd/netCDF_01.htm}. In short:
+
+\begin{lstlisting}[language = R]
+ncin <- nc_open("<converted-data>.nc")			# open the file
+
+names(ncin$var); names(ncin$dim)				# list variables and dimensions
+[1] "u10" "v10" "t2m"
+[1] "longitude" "latitude"  "number"    "step"      "time"      "date"
+
+# get dimensions
+lon <- ncvar_get(ncin, "longitude")         
+lat <- ncvar_get(ncin, "latitude")
+em <- ncvar_get(ncin, "number")                                         # ensemble members
+lt <- ncvar_get(ncin, "step")                                           # time steps (look-ahead time)
+f.time <- ncvar_get(ncin, "time")                                       # times that forecast was made
+f.date <- as.Date(ncvar_get(ncin, "date"), origin = "1900-01-01")       # dates that forecast was made
+
+# extract any variable as an array with the given dimensions
+temp <- ncvar_get(ncin, "t2m")
+
+nc_close(ncin)									# close the file (otherwise it will stay open in your workspace) 
+\end{lstlisting}
+
+
+%\subsection{Installing the \texttt{gribr} package}
+%
+%A user has very helpfully produced and shared an R package to import .grib files into R: \url{https://github.com/nawendt/gribr}\\[10pt]
+%
+%\textbf{First, install ecCodes.} 
+%
+%\textit{In Ubuntu, setup should be more straightforward if ecCodes is installed to a folder within the default system file path. This may differ among versions and installations, but seems to default to \texttt{/usr/local/lib}.\\
+%\texttt{gedit /etc/ld.so.conf.d/libc.conf} on the command line (or some other text editor in place of \texttt{gedit}) should display the default path. }
+%
+%
+%
+%Set source \& target directories  \\
+%
+%\textbf{Then install the \texttt{gribr} package} directly from GitHub. Despite installing a folder on the \texttt{ld} path, I needed to create an \texttt{.Renviron} file in \texttt{/home}, containing the following:
+%\begin{verbatim}
+%ECCODES_LIBS=/usr/local/lib/eccodes/lib
+%ECCODES_CPPFLAGS=/usr/local/lib/eccodes/include
+%LD_LIBRARY_PATH=<current library path>:/usr/local/lib/eccodes/lib
+%\end{verbatim}
+%
+%\vspace{12pt}
+%
+%To find \texttt{<current library path>}, in RStudio run \texttt{Sys.getenv("LD\_LIBRARY\_PATH")}, then copy and paste the string into the \texttt{.Renviron} file. 
+%
+%You will need to close and reopen RStudio for the new environment variables to be loaded on startup; it should now be possible to install \texttt{gribr} and its dependencies:
+%\begin{verbatim}
+%install.packages("proj4")
+%devtools::install_github("nawendt/gribr", 
+%                         args = "--configure-args='ECCODES_LIBS=-L/usr/local/lib/eccodes/lib
+%                                                   ECCODES_CPPFLAGS=-I/usr/local/lib/eccodes/include'")
+%\end{verbatim}
+
+
+
+
+
+\end{document}
 
 \newpage
 \subsection{Batch data retrieval using Python}
@@ -119,43 +313,7 @@ server.retrieve({
 \end{lstlisting}
 \end{framed} % ERA-interim
 
-% class & dataset
-\begin{tabular}{>{\ttfamily}l>{\ttfamily}l>{\ttfamily}ll}
-\textbf{\href{http://apps.ecmwf.int/codes/grib/format/mars/class/}{class}} & \textbf{dataset} & \textbf{\href{http://apps.ecmwf.int/codes/grib/format/mars/stream/}{stream}} & \\
-ei & interim & oper & ERA-interim reanalysis data: atmospheric model \textit{(ie. weather)}\\
-s2 & s2s & enfh & Subseasonal-to-seasonal data (up to 60 days): ensemble forecast hindcasts\\
-ti & tigge & enfo & TIGGE medium-range forecasts (up to 14 days): ensemble prediction system\\
-\end{tabular}
 
-% type
-\begin{tabular}{>{\ttfamily}cl}
-\textbf{\href{http://apps.ecmwf.int/codes/grib/format/mars/type/}{type}} & \\
-an & Analysis \\
-cf & Control forecast\\
-cl & Climatology \\
-pf & Perturbed forecast\\
-em & Ensemble mean\\
-es & Ensemble SD\\
-\end{tabular}
-
-%levtype
-\begin{tabular}{>{\ttfamily}cl>{\ttfamily}l}
-\textbf{levtype} & & \textbf{levlist}\\
-sfc & Surface & NA \\
-pl & Pressure level (hPA) & 200/250/300/500/700/850/925/1000\\
-\end{tabular}
-
-% parameters
-\begin{tabular}{>{\ttfamily}c>{\ttfamily}c>{\ttfamily}cll}
-\textbf{\href{http://apps.ecmwf.int/codes/grib/param-db/}{ERA-Interim}} & \textbf{ECMWF} & \textbf{S2S}&\\
-167.128 & 167 & &2m temperature & k\\
-- & 172 && land-sea mask & (0-1) \\
-228.128 &&& Total precipitation & (m) \\
-165.128 &&& 10m U-component of wind & ms$^{-1}$\\
-166.128 &&& 10m V-component of wind & ms$^{-1}$\\
-151.128 &&& Mean sea level pressure & Pa\\
-164.128 &&& Total cloud cover & (0-1) \\
-\end{tabular}
 
 \newpage
 
@@ -248,107 +406,3 @@ server.retrieve({
 })
 \end{lstlisting}
 \end{framed}
-
-\newpage
-\section{Reading downloaded data into R}
-
-ECMWF data is stored in .\texttt{grib} format, which is very compact, but which does not play nicely in R. The \href{https://software.ecmwf.int/wiki/display/ECC/ecCodes+Home}
-{\texttt{eccodes} package} provides a command-line tool to convert directly from grib to netcdf format; this is not currently available in any Linux repositories, so needs to be installed directly from the source files.
-
-\textit{It is possible to download data from ECMWF in netcdf format; however, if multiple timesteps are required (as they usually are with forecast data), the grib-to-netcdf conversion performed during the download will fail, so it's easier just to download everything in .\texttt{grib} format and convert manually.}
-
-\subsection{Install \texttt{eccodes} to get conversion tools}
-Download \href{https://software.ecmwf.int/wiki/display/ECC/Releases}{the latest tar.gz file}, then install following the directions given on the website. From the command line,
-
-\begin{footnotesize}
-	\begin{tabular}{>{\ttfamily}ll}
-		\textit{sudo apt install cmake} & \textit{Install \texttt{cmake}, if not already installed}  \\
-		tar -xzf  eccodes-2.2.0-Source.tar.gz & Unpack tarball  \\
-		mkdir build; cd build & Create \& move to clean build directory  \\
-		cmake & (all one command)\\
-		$\-\ $ ../eccodes-2.2.0-Source & $\-\ $ Path to unpacked tarball \\
-		$\-\ $ -DCMAKE\_INSTALL\_PREFIX=/usr/local  & $\-\ $ Set target directory\\
-		$\-\ $ -DENABLE\_NETCDF=ON & $\-\ $ Enable \texttt{grib\_to\_netcdf} conversion\\
-		$\-\ $ -DENABLE\_PYTHON=ON & $\-\ $ Offer Python interface \\
-		
-		make & Compile  \\
-		ctest & Test  \\
-		sudo make install & Install to specified directory  \\
-	\end{tabular}
-\end{footnotesize}
-
-
-
-\subsection{Convert downloaded \texttt{.grib} data to \texttt{.nc} format}
-
-Conversion from \texttt{.grib} to \texttt{.nc} is now quite straightforward. On the command line, run
-
-\texttt{grib\_to\_netcdf <input-file>.grib -o <output-file>.nc -T}
-
-Option \texttt{-T} is critical when downloading forecast data at multiple timesteps - this will cause the converter to treat the timesteps as a dimension (which it is), not as a variable (which causes the conversion to find multiple records for each dimension, and to crash)
-
-\subsection{Import netcdf data into R}
-
-A handy reference to importing netcdf data in R can be found at \url{http://geog.uoregon.edu/bartlein/courses/geog607/Rmd/netCDF_01.htm}. In short:
-
-\begin{lstlisting}[language=R]
-ncin <- nc_open("<converted-data>.nc")			# open the file
-
-names(ncin$var); names(ncin$dim)				# list variables and dimensions
-[1] "u10" "v10" "t2m"
-[1] "longitude" "latitude"  "number"    "step"      "time"      "date"
-
-# get dimensions
-lon <- ncvar_get(ncin, "longitude")         
-lat <- ncvar_get(ncin, "latitude")
-em <- ncvar_get(ncin, "number")                                         # ensemble members
-lt <- ncvar_get(ncin, "step")                                           # time steps (look-ahead time)
-f.time <- ncvar_get(ncin, "time")                                       # times that forecast was made
-f.date <- as.Date(ncvar_get(ncin, "date"), origin = "1900-01-01")       # dates that forecast was made
-
-# extract any variable as an array with the given dimensions
-temp <- ncvar_get(ncin, "t2m")
-
-nc_close(ncin)									# close the file (otherwise it will stay open in your workspace) 
-\end{lstlisting}
-
-
-%\subsection{Installing the \texttt{gribr} package}
-%
-%A user has very helpfully produced and shared an R package to import .grib files into R: \url{https://github.com/nawendt/gribr}\\[10pt]
-%
-%\textbf{First, install ecCodes.} 
-%
-%\textit{In Ubuntu, setup should be more straightforward if ecCodes is installed to a folder within the default system file path. This may differ among versions and installations, but seems to default to \texttt{/usr/local/lib}.\\
-%\texttt{gedit /etc/ld.so.conf.d/libc.conf} on the command line (or some other text editor in place of \texttt{gedit}) should display the default path. }
-%
-%
-%
-%Set source \& target directories  \\
-%
-%\textbf{Then install the \texttt{gribr} package} directly from GitHub. Despite installing a folder on the \texttt{ld} path, I needed to create an \texttt{.Renviron} file in \texttt{/home}, containing the following:
-%\begin{verbatim}
-%ECCODES_LIBS=/usr/local/lib/eccodes/lib
-%ECCODES_CPPFLAGS=/usr/local/lib/eccodes/include
-%LD_LIBRARY_PATH=<current library path>:/usr/local/lib/eccodes/lib
-%\end{verbatim}
-%
-%\vspace{12pt}
-%
-%To find \texttt{<current library path>}, in RStudio run \texttt{Sys.getenv("LD\_LIBRARY\_PATH")}, then copy and paste the string into the \texttt{.Renviron} file. 
-%
-%You will need to close and reopen RStudio for the new environment variables to be loaded on startup; it should now be possible to install \texttt{gribr} and its dependencies:
-%\begin{verbatim}
-%install.packages("proj4")
-%devtools::install_github("nawendt/gribr", 
-%                         args = "--configure-args='ECCODES_LIBS=-L/usr/local/lib/eccodes/lib
-%                                                   ECCODES_CPPFLAGS=-I/usr/local/lib/eccodes/include'")
-%\end{verbatim}
-
-
-\newpage
-
-
-
-
-\end{document}

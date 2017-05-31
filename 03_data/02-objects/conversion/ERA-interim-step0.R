@@ -1,4 +1,6 @@
 
+library("ecmwfConversion")
+
 # ERA-interim reanalysis data at step 0
 
 # Instantaneous forecasts of 2m surface temp, u & v wind components, MSLP
@@ -69,3 +71,20 @@ names(dimnames(era)) <- c("varb", "lon", "lat", "year", "day", "hour")
 dimnames(era)$day <- substr(dimnames(era)$day, 5,8)
 
 saveRDS(era, "./02-objects/step0-ERAint.rds")
+
+########################################################################################################
+# extract north & south regions                                                                     ####
+
+nsm <- ns.mask()
+
+era <- readRDS("../../../03_data/02-objects/step0-ERAint.rds")
+
+ns.obs <- abind("temp.n" = apply(sweep(era["t2m",,,,,], 1:2, nsm$n, "*"), 3:5, mean, na.rm = T),
+                "temp.s" = apply(sweep(era["t2m",,,,,], 1:2, nsm$s, "*"), 3:5, mean, na.rm = T),
+                along = 0)
+
+names(dimnames(ns.obs)) <- c("varb", "year", "day", "time")
+
+dimnames(ns.obs)$day <- paste(sapply(dimnames(ns.obs)$day, substr, 1, 2), sapply(dimnames(ns.obs)$day, substr, 3,4), sep = "-")
+
+saveRDS(ns.obs, "../../../03_data/02-objects/ns-temp-obs.rds")

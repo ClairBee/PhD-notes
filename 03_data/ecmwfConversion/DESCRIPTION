@@ -7,7 +7,9 @@ Depends:
     R (>= 3.3.1),
     ncdf4,
     maps,
-    abind
+    abind,
+    plyr,
+    beepr
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
